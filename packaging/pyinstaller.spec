@@ -1,6 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from pathlib import Path
+
 from PyInstaller.utils.hooks import collect_submodules
+
+
+PROJECT_ROOT = Path(SPECPATH).parent
 
 
 hiddenimports = []
@@ -20,13 +25,13 @@ for package in [
     hiddenimports += collect_submodules(package)
 
 datas = [
-    ("backend/app/prompts", "app/prompts"),
-    ("backend/app/static", "app/static"),
+    (str(PROJECT_ROOT / "backend" / "app" / "prompts"), "app/prompts"),
+    (str(PROJECT_ROOT / "backend" / "app" / "static"), "app/static"),
 ]
 
 a = Analysis(
-    ["backend/desktop_launcher.py"],
-    pathex=["backend"],
+    [str(PROJECT_ROOT / "backend" / "desktop_launcher.py")],
+    pathex=[str(PROJECT_ROOT / "backend")],
     binaries=[],
     datas=datas,
     hiddenimports=hiddenimports,

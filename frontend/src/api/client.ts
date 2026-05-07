@@ -81,6 +81,11 @@ export type AISettingsUpdate = {
   providers: AIProviderConfigUpdate[];
 };
 
+export type AIModelListResponse = {
+  models: string[];
+  source: string;
+};
+
 export const api = {
   generateReply: (question: string, style = "normal") =>
     request<ReplyResponse>("/api/reply/generate", {
@@ -113,5 +118,7 @@ export const api = {
     request<HistoryItem>("/api/history/create", { method: "POST", body: JSON.stringify(payload) }),
   getAISettings: () => request<AISettings>("/api/settings/ai"),
   updateAISettings: (payload: AISettingsUpdate) =>
-    request<AISettings>("/api/settings/ai", { method: "PUT", body: JSON.stringify(payload) })
+    request<AISettings>("/api/settings/ai", { method: "PUT", body: JSON.stringify(payload) }),
+  listAIModels: (payload: { provider_id: string; api_key?: string; base_url?: string }) =>
+    request<AIModelListResponse>("/api/settings/ai/models", { method: "POST", body: JSON.stringify(payload) })
 };

@@ -1,4 +1,4 @@
-import { CheckCircle2, ExternalLink, KeyRound, Save } from "lucide-react";
+import { CheckCircle2, ExternalLink, KeyRound, ListFilter, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api, AIProviderConfig, AISettingsUpdate } from "../api/client";
 import { Input, Panel, PrimaryButton, Select } from "../components/ui";
@@ -13,6 +13,8 @@ export default function SettingsPage() {
   const [activeProvider, setActiveProvider] = useState("openai");
   const [providers, setProviders] = useState<AIProviderConfig[]>([]);
   const [providerForms, setProviderForms] = useState<Record<string, ProviderForm>>({});
+  const [modelOptions, setModelOptions] = useState<Record<string, string[]>>({});
+  const [loadingModels, setLoadingModels] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
@@ -66,17 +68,17 @@ export default function SettingsPage() {
     setError("");
     setSaved(false);
     try {
+      const current = providerForms[activeProvider];
       const payload: AISettingsUpdate = {
         ai_provider: activeProvider,
-        providers: providers.map((provider) => {
-          const current = providerForms[provider.id];
-          const item = {
-            id: provider.id,
+        providers: [
+          {
+            id: activeProvider,
             base_url: current?.base_url,
-            model: current?.model
-          };
-          return current?.api_key.trim() ? { ...item, api_key: current.api_key.trim() } : item;
-        })
+            model: current?.model,
+            ...(current?.api_key.trim() ? { api_key: current.api_key.trim() } : {})
+          }
+        ]
       };
       const data = await api.updateAISettings(payload);
       setActiveProvider(data.ai_provider);
@@ -92,6 +94,28 @@ export default function SettingsPage() {
       setSaved(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "保存失败");
+    }
+  }
+
+  async function detectModels() {
+    if (!activeProviderInfo) return;
+    setError("");
+    setSaved(false);
+    setLoadingModels(true);
+    try {
+      const data = await api.listAIModels({
+        provider_id: activeProviderInfo.id,
+        api_key: activeForm.api_key || undefined,
+        base_url: activeForm.base_url || undefined
+      });
+      setModelOptions((current) => ({ ...current, [activeProviderInfo.id]: data.models }));
+      if (data.models.length > 0 && !data.models.includes(activeForm.model)) {
+        updateProviderField(activeProviderInfo.id, "model", data.models[0]);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "模型识别失败");
+    } finally {
+      setLoadingModels(false);
     }
   }
 
@@ -184,18 +208,45 @@ export default function SettingsPage() {
               </label>
               <label className="space-y-1 text-sm">
                 <span className="font-medium text-slate-700">模型名称</span>
-                <Input value={activeForm.model} onChange={(event) => updateProviderField(activeProviderInfo.id, "model", event.target.value)} />
+                <Select
+                  className="w-full"
+                  value={activeForm.model}
+                  onChange={(event) => updateProviderField(activeProviderInfo.id, "model", event.target.value)}
+                >
+                  <option value={activeForm.model}>{activeForm.model || "请先识别模型"}</option>
+                  {(modelOptions[activeProviderInfo.id] || []).filter((model) => model !== activeForm.model).map((model) => (
+                    <option key={model} value={model}>
+                      {model}
+                    </option>
+                  ))}
+                </Select>
               </label>
+            </div>
+            <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+              <label className="space-y-1 text-sm">
+                <span className="font-medium text-slate-700">手动模型名</span>
+                <Input
+                  placeholder="如果模型列表没有目标模型，可以手动填写"
+                  value={activeForm.model}
+                  onChange={(event) => updateProviderField(activeProviderInfo.id, "model", event.target.value)}
+                />
+              </label>
+              <div className="flex items-end gap-2">
+                <PrimaryButton onClick={detectModels} disabled={loadingModels}>
+                  <ListFilter size={16} />
+                  {loadingModels ? "识别中" : "识别模型"}
+                </PrimaryButton>
+              </div>
             </div>
             {activeProviderInfo.note && <p className="mt-3 text-xs leading-5 text-slate-500">{activeProviderInfo.note}</p>}
           </article>
         )}
 
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
-          <p className="text-sm text-slate-500">API Key 留空不会覆盖旧值。保存后，回复工作台会立即使用当前启用的 Provider。</p>
+          <p className="text-sm text-slate-500">先填 API Key 并识别模型，再选择或手动填写模型名。保存后，回复工作台会立即使用当前模型。</p>
           <PrimaryButton onClick={saveSettings}>
             <Save size={16} />
-            保存 API 设置
+            保存当前模型
           </PrimaryButton>
         </div>
       </Panel>
@@ -209,7 +260,7 @@ export default function SettingsPage() {
       <Panel title="后续 TODO">
         <ul className="list-disc space-y-2 pl-5 text-sm leading-6 text-slate-600">
           <li>生产环境建议对 API Key 增加加密存储或接入密钥管理服务。</li>
-          <li>增加 Provider 连通性测试按钮，保存前验证 Key、Base URL 和模型名。</li>
+          <li>部分厂商可能不开放 `/models`，识别失败时可用控制台模型名手动保存。</li>
           <li>增加向量检索，可替换为 Chroma、FAISS 或 pgvector。</li>
         </ul>
       </Panel>

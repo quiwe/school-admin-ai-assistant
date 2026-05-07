@@ -117,3 +117,14 @@ class AISettingsRead(BaseModel):
 class AISettingsUpdate(BaseModel):
     ai_provider: str
     providers: list[AIProviderConfigUpdate] = []
+
+
+class AIModelListRequest(BaseModel):
+    provider_id: str
+    api_key: str | None = None
+    base_url: str | None = None
+
+
+class AIModelListResponse(BaseModel):
+    models: list[str]
+    source: str
