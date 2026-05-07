@@ -1,0 +1,13 @@
+backend/.env
+frontend/.env
+data/
+backend/data/
+frontend/node_modules/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+backend/app/static/
+build/
+dist/
+installer-output/
+__pycache__/
+*.pyc
