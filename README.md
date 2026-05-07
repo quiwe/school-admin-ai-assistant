@@ -57,6 +57,7 @@ docker compose up --build
 
 - Artifact 名称：`SchoolAdminAIAssistant-Windows-Installer`
 - 安装包文件：`SchoolAdminAIAssistant-Setup.exe`
+- GitHub Release：每次 `main` 分支打包成功后，会自动创建或更新 `latest` Release，并把安装包上传到 Release 附件。
 
 安装包默认安装目录：
 

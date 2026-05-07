@@ -5,6 +5,9 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   windows-installer:
     runs-on: windows-latest
@@ -60,3 +63,25 @@ jobs:
         with:
           name: SchoolAdminAIAssistant-Windows-Installer
           path: installer-output/SchoolAdminAIAssistant-Setup.exe
+
+      - name: Publish latest GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "latest"
+          $asset = "installer-output/SchoolAdminAIAssistant-Setup.exe"
+          $notes = "Automated Windows installer build from commit $env:GITHUB_SHA.`n`nDefault install path: D:\SchoolAdminAIAssistant"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f $tag $env:GITHUB_SHA
+          git push origin "refs/tags/$tag" --force
+
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release edit $tag --title "Latest Windows Installer" --notes $notes
+            gh release upload $tag $asset --clobber
+          } else {
+            gh release create $tag $asset --title "Latest Windows Installer" --notes $notes --latest
+          }
