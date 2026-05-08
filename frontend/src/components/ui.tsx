@@ -1,16 +1,43 @@
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type {
+  ButtonHTMLAttributes,
+  CSSProperties,
+  InputHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes
+} from "react";
 
-export function Button({ className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+export function Button({ className = "", type = "button", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       className={`inline-flex h-9 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 ${className}`}
+      type={type}
       {...props}
     />
   );
 }
 
-export function PrimaryButton({ className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <Button className={`border-primary bg-primary text-white hover:bg-blue-700 ${className}`} {...props} />;
+export function PrimaryButton({
+  className = "",
+  style,
+  type = "button",
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement>) {
+  const buttonStyle: CSSProperties = {
+    backgroundColor: "#2563eb",
+    borderColor: "#2563eb",
+    color: "#ffffff",
+    ...style
+  };
+
+  return (
+    <button
+      className={`inline-flex h-9 items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      style={buttonStyle}
+      type={type}
+      {...props}
+    />
+  );
 }
 
 export function Textarea({ className = "", ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {

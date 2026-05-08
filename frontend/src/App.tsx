@@ -16,7 +16,6 @@ const nav = [
 
 export default function App() {
   const [page, setPage] = useState("reply");
-  const Current = page === "reply" ? ReplyWorkbench : page === "knowledge" ? KnowledgeBase : page === "faq" ? FAQManager : page === "history" ? HistoryPage : SettingsPage;
 
   return (
     <div className="min-h-screen">
@@ -46,7 +45,21 @@ export default function App() {
           })}
         </nav>
         <main className="min-w-0 flex-1">
-          <Current />
+          <div className={page === "reply" ? "block" : "hidden"}>
+            <ReplyWorkbench />
+          </div>
+          <div className={page === "knowledge" ? "block" : "hidden"}>
+            <KnowledgeBase />
+          </div>
+          <div className={page === "faq" ? "block" : "hidden"}>
+            <FAQManager />
+          </div>
+          <div className={page === "history" ? "block" : "hidden"}>
+            <HistoryPage />
+          </div>
+          <div className={page === "settings" ? "block" : "hidden"}>
+            <SettingsPage />
+          </div>
         </main>
       </div>
     </div>

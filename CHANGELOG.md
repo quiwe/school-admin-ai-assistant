@@ -1,5 +1,16 @@
 # 更新日志
 
+## 0.2.6 - 2026-05-08
+
+开发者：maoqiu
+
+- 知识库上传增加老版 Office 格式支持：DOC、PPT、XLS。
+- 增加 PPTX 解析，知识库支持 PDF、DOC、DOCX、PPT、PPTX、TXT、XLS、XLSX。
+- Excel FAQ 导入同时支持 XLSX 和 XLS。
+- 修复部分主按钮文字显示为空白的问题。
+- 修复切换左侧页面后设置表单、知识库上传选择等临时内容丢失的问题。
+- 旧版 DOC/PPT 采用 OLE 文本尽力提取，复杂文件建议另存为 DOCX、PPTX 或 PDF 后上传。
+
 ## 0.2.5 - 2026-05-08
 
 开发者：maoqiu

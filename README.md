@@ -5,7 +5,7 @@
 ## 功能说明
 
 - 回复工作台：粘贴学生问题，生成回复，改写为更正式、更简短、更温和，一键复制。
-- 知识库管理：上传 PDF、DOCX、TXT、XLSX，自动解析、切分 chunk、建立本地检索依据。
+- 知识库管理：上传 PDF、DOC、DOCX、PPT、PPTX、TXT、XLS、XLSX，自动解析、切分 chunk、建立本地检索依据。
 - FAQ 管理：新增、编辑、删除、搜索 FAQ，并设置是否允许作为自动回复依据。
 - 历史记录：保存每次生成结果，支持搜索、分类筛选、复制、标记为常见问题。
 - 系统设置：在页面中配置常用大模型 API，包括 OpenAI、DeepSeek、通义千问、智谱 GLM、Kimi、豆包、硅基流动、MiniMax、小米 MiMo、OpenRouter、Ollama、LM Studio 和自定义 OpenAI 兼容接口。
@@ -121,10 +121,14 @@ API Key 不要写入代码或提交到仓库。
 
 - PDF：使用 `pypdf`
 - DOCX：使用 `python-docx`
+- DOC：旧版 Office OLE 文本抽取，建议优先另存为 DOCX 或 PDF 以获得更稳定解析效果
+- PPTX：使用 `python-pptx`
+- PPT：旧版 Office OLE 文本抽取，建议优先另存为 PPTX 或 PDF
 - XLSX：使用 `openpyxl`
+- XLS：使用 `xlrd`
 - TXT：直接读取文本
 
-如果 XLSX 第一行包含“问题”“答案”“分类”列，可勾选“XLSX 导入 FAQ”，系统会把表格内容导入 FAQ。
+如果 XLSX 或 XLS 第一行包含“问题”“答案”“分类”列，可勾选“Excel 导入 FAQ”，系统会把表格内容导入 FAQ。
 
 ## 使用回复工作台
 

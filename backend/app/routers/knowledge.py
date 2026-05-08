@@ -7,7 +7,12 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import FAQItem, KnowledgeChunk, KnowledgeFile
 from ..schemas import KnowledgeFileRead, KnowledgeFileUpdate
-from ..services.file_parser import FileParseError, extract_faq_rows_from_xlsx, parse_file
+from ..services.file_parser import (
+    FileParseError,
+    SUPPORTED_EXTENSIONS,
+    extract_faq_rows_from_spreadsheet,
+    parse_file,
+)
 from ..services.rag import chunk_text
 from ..settings import settings
 
@@ -24,8 +29,8 @@ async def upload_knowledge(
     upload_dir = Path(settings.upload_dir)
     upload_dir.mkdir(parents=True, exist_ok=True)
     suffix = Path(file.filename or "").suffix.lower()
-    if suffix not in {".pdf", ".docx", ".txt", ".xlsx"}:
-        raise HTTPException(status_code=400, detail="仅支持 PDF、DOCX、TXT、XLSX 文件。")
+    if suffix not in SUPPORTED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="仅支持 PDF、DOC、DOCX、PPT、PPTX、TXT、XLS、XLSX 文件。")
 
     stored_name = f"{uuid4().hex}{suffix}"
     stored_path = upload_dir / stored_name
@@ -50,8 +55,8 @@ async def upload_knowledge(
     for index, chunk in enumerate(chunks):
         db.add(KnowledgeChunk(file_id=record.id, chunk_text=chunk, chunk_index=index, embedding_id=None))
 
-    if import_faq and suffix == ".xlsx":
-        for row in extract_faq_rows_from_xlsx(stored_path):
+    if import_faq and suffix in {".xlsx", ".xls"}:
+        for row in extract_faq_rows_from_spreadsheet(stored_path):
             db.add(
                 FAQItem(
                     question=row["question"],

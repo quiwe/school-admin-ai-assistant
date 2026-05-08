@@ -19,8 +19,11 @@ for package in [
     "openai",
     "httpx",
     "docx",
+    "pptx",
     "pypdf",
     "openpyxl",
+    "xlrd",
+    "olefile",
     "clr_loader",
     "pythonnet",
 ]:

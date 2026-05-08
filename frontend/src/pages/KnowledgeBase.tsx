@@ -103,7 +103,7 @@ export default function KnowledgeBase() {
           <Input
             key={fileInputKey}
             type="file"
-            accept=".pdf,.docx,.txt,.xlsx"
+            accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.xls,.xlsx"
             onChange={(event) => {
               setFile(event.target.files?.[0] || null);
               setMessage("");
@@ -115,7 +115,7 @@ export default function KnowledgeBase() {
           </Select>
           <label className="flex items-center gap-2 text-sm text-slate-600">
             <input type="checkbox" checked={importFAQ} onChange={(event) => setImportFAQ(event.target.checked)} />
-            XLSX 导入 FAQ
+            Excel 导入 FAQ
           </label>
           <PrimaryButton onClick={upload} disabled={!file || uploading}>
             <Save size={16} />
