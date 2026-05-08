@@ -57,6 +57,11 @@ def run_server(port: int) -> None:
     uvicorn.run("app.main:app", host="127.0.0.1", port=port, log_level="warning")
 
 
+def icon_path(root: Path) -> str | None:
+    icon = root / "assets" / "app-icon.ico"
+    return str(icon) if icon.exists() else None
+
+
 def main() -> None:
     root = app_dir()
     configure_runtime(root)
@@ -73,7 +78,7 @@ def main() -> None:
         min_size=(1100, 720),
         confirm_close=False,
     )
-    webview.start(gui="edgechromium", debug=False)
+    webview.start(gui="edgechromium", debug=False, icon=icon_path(root))
 
 
 if __name__ == "__main__":

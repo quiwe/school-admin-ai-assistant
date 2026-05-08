@@ -30,6 +30,7 @@ for package in [
 datas = [
     (str(PROJECT_ROOT / "backend" / "app" / "prompts"), "app/prompts"),
     (str(PROJECT_ROOT / "backend" / "app" / "static"), "app/static"),
+    (str(PROJECT_ROOT / "assets"), "assets"),
     (str(PROJECT_ROOT / "VERSION"), "."),
     (str(PROJECT_ROOT / "DEVELOPER"), "."),
     (str(PROJECT_ROOT / "CHANGELOG.md"), "."),
@@ -61,6 +62,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,
+    icon=str(PROJECT_ROOT / "assets" / "app-icon.ico"),
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

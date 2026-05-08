@@ -10,6 +10,7 @@
 #endif
 #define MyAppExeName "SchoolAdminAIAssistant.exe"
 #define BuildDir "..\dist\SchoolAdminAIAssistant"
+#define MyIconFile "..\assets\app-icon.ico"
 
 [Setup]
 AppId={{A1BA8594-BBB8-42E7-9C4F-FDD42E1DD44A}
@@ -31,6 +32,7 @@ WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\{#MyAppExeName}
+SetupIconFile={#MyIconFile}
 
 [Tasks]
 Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: "附加快捷方式："; Flags: unchecked
