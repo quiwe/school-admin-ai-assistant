@@ -10,5 +10,6 @@ build/
 dist/
 installer-output/
 logs/
+packaging/redist/
 __pycache__/
 *.pyc

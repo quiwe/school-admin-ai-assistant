@@ -68,7 +68,13 @@ D:\SchoolAdminAIAssistant
 
 安装后会生成开始菜单快捷方式，可选创建桌面快捷方式。启动后会打开 Windows 桌面窗口，不再跳转到默认浏览器；后台服务只监听本机地址。数据默认保存在安装目录下的 `data` 文件夹中，避免默认写入 C 盘。
 
-桌面版依赖 Microsoft Edge WebView2 Runtime。Windows 10/11 通常已自带；如果极少数机器无法打开窗口，请先安装 WebView2 Runtime。
+桌面版依赖 Microsoft Edge WebView2 Runtime。Windows 10/11 通常已自带；Release 安装包会自动检测，如果目标电脑没有 WebView2，会使用安装包内置的 WebView2 Runtime 安装器自动静默安装。
+
+如果你不是通过 Release 安装包安装，而是自己本地编译了不含内置运行时的安装包，可手动安装 WebView2：
+
+```text
+https://developer.microsoft.com/microsoft-edge/webview2/
+```
 
 ## 版本发布规范
 

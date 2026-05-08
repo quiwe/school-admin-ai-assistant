@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.2.4 - 2026-05-08
+
+- 安装包增加 Microsoft Edge WebView2 Runtime 检测。
+- Release 安装包会内置 WebView2 Evergreen Standalone 安装器，目标电脑未安装 WebView2 时自动静默安装。
+
 ## 0.2.3 - 2026-05-08
 
 - 修复桌面版窗口打开后可能出现 `127.0.0.1 拒绝连接` 的问题。

@@ -74,6 +74,14 @@ jobs:
         shell: pwsh
         run: choco install innosetup --no-progress -y
 
+      - name: Download WebView2 Runtime redistributable
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path packaging/redist | Out-Null
+          Invoke-WebRequest `
+            -Uri "https://go.microsoft.com/fwlink/?linkid=2124701" `
+            -OutFile "packaging/redist/MicrosoftEdgeWebView2RuntimeInstallerX64.exe"
+
       - name: Build installer
         shell: pwsh
         run: |
@@ -81,6 +89,7 @@ jobs:
             /DMyAppVersion="$env:APP_VERSION" `
             /DMyAppPublisher="$env:APP_DEVELOPER" `
             /DMyOutputBaseFilename="$env:INSTALLER_BASENAME" `
+            /DIncludeWebView2Runtime `
             packaging\installer.iss
 
       - name: Upload installer artifact
