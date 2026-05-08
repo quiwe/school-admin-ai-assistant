@@ -21,11 +21,18 @@ for package in [
     "docx",
     "pypdf",
     "openpyxl",
-    "webview",
     "clr_loader",
     "pythonnet",
 ]:
     hiddenimports += collect_submodules(package)
+
+hiddenimports += [
+    "webview",
+    "webview.dom",
+    "webview.guilib",
+    "webview.platforms.edgechromium",
+    "webview.platforms.winforms",
+]
 
 datas = [
     (str(PROJECT_ROOT / "backend" / "app" / "prompts"), "app/prompts"),
@@ -45,7 +52,22 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        "cefpython3",
+        "gi",
+        "kivy",
+        "pygame",
+        "PyQt5",
+        "PyQt6",
+        "PySide2",
+        "PySide6",
+        "webview.platforms.android",
+        "webview.platforms.cef",
+        "webview.platforms.cocoa",
+        "webview.platforms.gtk",
+        "webview.platforms.mshtml",
+        "webview.platforms.qt",
+    ],
     noarchive=False,
     optimize=0,
 )

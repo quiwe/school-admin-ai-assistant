@@ -16,7 +16,9 @@ export default function SettingsPage() {
   const [modelOptions, setModelOptions] = useState<Record<string, string[]>>({});
   const [loadingModels, setLoadingModels] = useState(false);
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [status, setStatus] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -41,6 +43,7 @@ export default function SettingsPage() {
       const data = await api.getAISettings();
       setActiveProvider(data.ai_provider);
       setProviders(data.providers);
+      setStatus("");
       setProviderForms(
         Object.fromEntries(
           data.providers.map((provider) => [
@@ -55,6 +58,8 @@ export default function SettingsPage() {
   }
 
   function updateProviderField(providerId: string, field: keyof ProviderForm, value: string) {
+    setSaved(false);
+    setStatus("");
     setProviderForms((current) => ({
       ...current,
       [providerId]: {
@@ -69,16 +74,27 @@ export default function SettingsPage() {
   async function saveSettings() {
     setError("");
     setSaved(false);
+    setStatus("");
+    if (!activeProviderInfo) {
+      setError("请先选择 Provider");
+      return;
+    }
+    const trimmedBaseUrl = activeForm.base_url.trim();
+    const trimmedModel = activeForm.model.trim();
+    if (!trimmedModel) {
+      setError("请先选择或填写模型名称");
+      return;
+    }
+    setSaving(true);
     try {
-      const current = providerForms[activeProvider];
       const payload: AISettingsUpdate = {
         ai_provider: activeProvider,
         providers: [
           {
             id: activeProvider,
-            base_url: current?.base_url,
-            model: current?.model,
-            ...(current?.api_key.trim() ? { api_key: current.api_key.trim() } : {})
+            base_url: trimmedBaseUrl,
+            model: trimmedModel,
+            ...(activeForm.api_key.trim() ? { api_key: activeForm.api_key.trim() } : {})
           }
         ]
       };
@@ -93,9 +109,12 @@ export default function SettingsPage() {
           ])
         )
       );
+      setStatus(`已保存：${activeProviderInfo.label} / ${trimmedModel}`);
       setSaved(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -114,6 +133,7 @@ export default function SettingsPage() {
       if (data.models.length > 0 && !data.models.includes(activeForm.model)) {
         updateProviderField(activeProviderInfo.id, "model", data.models[0]);
       }
+      setStatus(`已识别到 ${data.models.length} 个模型，请选择后保存`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "模型识别失败");
     } finally {
@@ -127,7 +147,8 @@ export default function SettingsPage() {
         title="常用大模型 API 设置"
         action={
           <div className="text-xs">
-            {saved && <span className="text-emerald-700">已保存</span>}
+            {saved && <span className="text-emerald-700">{status || "已保存"}</span>}
+            {!saved && status && <span className="text-slate-600">{status}</span>}
             {error && <span className="text-red-600">{error}</span>}
           </div>
         }
@@ -135,7 +156,16 @@ export default function SettingsPage() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
           <label className="space-y-1 text-sm">
             <span className="font-medium text-slate-700">当前启用的 Provider</span>
-            <Select className="w-full" value={activeProvider} onChange={(event) => setActiveProvider(event.target.value)}>
+            <Select
+              className="w-full"
+              value={activeProvider}
+              onChange={(event) => {
+                setActiveProvider(event.target.value);
+                setSaved(false);
+                setStatus("");
+                setError("");
+              }}
+            >
               {providers.map((provider) => (
                 <option key={provider.id} value={provider.id}>
                   {provider.label}
@@ -238,6 +268,10 @@ export default function SettingsPage() {
                   <ListFilter size={16} />
                   {loadingModels ? "识别中" : "识别模型"}
                 </PrimaryButton>
+                <PrimaryButton onClick={saveSettings} disabled={saving || !activeProviderInfo}>
+                  <Save size={16} />
+                  {saving ? "保存中" : "保存模型配置"}
+                </PrimaryButton>
               </div>
             </div>
             {activeProviderInfo.note && <p className="mt-3 text-xs leading-5 text-slate-500">{activeProviderInfo.note}</p>}
@@ -245,10 +279,10 @@ export default function SettingsPage() {
         )}
 
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
-          <p className="text-sm text-slate-500">先填 API Key 并识别模型，再选择或手动填写模型名。保存后，回复工作台会立即使用当前模型。</p>
-          <PrimaryButton onClick={saveSettings}>
+          <p className="text-sm text-slate-500">先填 API Key 并识别模型，再选择或手动填写模型名。点击保存后，回复工作台会立即使用当前模型。</p>
+          <PrimaryButton onClick={saveSettings} disabled={saving || !activeProviderInfo}>
             <Save size={16} />
-            保存当前模型
+            {saving ? "保存中" : "保存模型配置"}
           </PrimaryButton>
         </div>
       </Panel>

@@ -40,6 +40,10 @@ class KnowledgeFileRead(BaseModel):
         from_attributes = True
 
 
+class KnowledgeFileUpdate(BaseModel):
+    category: str | None = None
+
+
 class FAQCreate(BaseModel):
     question: str
     answer: str

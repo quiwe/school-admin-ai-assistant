@@ -1,4 +1,4 @@
-import { Eye, RefreshCw, Trash2, Upload } from "lucide-react";
+import { Eye, RefreshCw, Save, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, KnowledgeFile } from "../api/client";
 import { Button, categories, Input, Panel, PrimaryButton, Select } from "../components/ui";
@@ -9,9 +9,17 @@ export default function KnowledgeBase() {
   const [category, setCategory] = useState("其他");
   const [importFAQ, setImportFAQ] = useState(false);
   const [selected, setSelected] = useState<KnowledgeFile | null>(null);
+  const [categoryDrafts, setCategoryDrafts] = useState<Record<number, string>>({});
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [savingCategoryId, setSavingCategoryId] = useState<number | null>(null);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   async function load() {
-    setItems(await api.listKnowledge());
+    const data = await api.listKnowledge();
+    setItems(data);
+    setCategoryDrafts(Object.fromEntries(data.map((item) => [item.id, item.category])));
   }
 
   useEffect(() => {
@@ -20,30 +28,88 @@ export default function KnowledgeBase() {
 
   async function upload() {
     if (!file) return;
+    setError("");
+    setMessage("");
+    setUploading(true);
     const form = new FormData();
     form.append("file", file);
     form.append("category", category);
     form.append("import_faq", String(importFAQ));
-    await api.uploadKnowledge(form);
-    setFile(null);
-    await load();
+    try {
+      const saved = await api.uploadKnowledge(form);
+      setFile(null);
+      setFileInputKey((current) => current + 1);
+      setMessage(`已保存到知识库：${saved.filename}，${saved.chunk_count} 个 chunk`);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "保存知识库文件失败");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function remove(id: number) {
-    await api.deleteKnowledge(id);
-    await load();
+    setError("");
+    setMessage("");
+    try {
+      await api.deleteKnowledge(id);
+      setMessage("已删除知识库文件");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "删除失败");
+    }
   }
 
   async function reindex(id: number) {
-    await api.reindexKnowledge(id);
-    await load();
+    setError("");
+    setMessage("");
+    try {
+      const updated = await api.reindexKnowledge(id);
+      setMessage(`已重新索引：${updated.filename}`);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "重新索引失败");
+    }
+  }
+
+  async function saveCategory(item: KnowledgeFile) {
+    const nextCategory = categoryDrafts[item.id] || item.category;
+    setError("");
+    setMessage("");
+    setSavingCategoryId(item.id);
+    try {
+      const updated = await api.updateKnowledge(item.id, { category: nextCategory });
+      setMessage(`已保存分类：${updated.filename} / ${updated.category}`);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "保存分类失败");
+    } finally {
+      setSavingCategoryId(null);
+    }
   }
 
   return (
     <div className="space-y-4">
-      <Panel title="上传知识库文件">
+      <Panel
+        title="上传知识库文件"
+        action={
+          <div className="text-xs">
+            {message && <span className="text-emerald-700">{message}</span>}
+            {error && <span className="text-red-600">{error}</span>}
+          </div>
+        }
+      >
         <div className="grid gap-3 md:grid-cols-[1fr_160px_auto_auto]">
-          <Input type="file" accept=".pdf,.docx,.txt,.xlsx" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+          <Input
+            key={fileInputKey}
+            type="file"
+            accept=".pdf,.docx,.txt,.xlsx"
+            onChange={(event) => {
+              setFile(event.target.files?.[0] || null);
+              setMessage("");
+              setError("");
+            }}
+          />
           <Select value={category} onChange={(event) => setCategory(event.target.value)}>
             {categories.map((name) => <option key={name}>{name}</option>)}
           </Select>
@@ -51,11 +117,12 @@ export default function KnowledgeBase() {
             <input type="checkbox" checked={importFAQ} onChange={(event) => setImportFAQ(event.target.checked)} />
             XLSX 导入 FAQ
           </label>
-          <PrimaryButton onClick={upload} disabled={!file}>
-            <Upload size={16} />
-            上传
+          <PrimaryButton onClick={upload} disabled={!file || uploading}>
+            <Save size={16} />
+            {uploading ? "保存中" : "保存文件到知识库"}
           </PrimaryButton>
         </div>
+        {file && <p className="mt-2 text-xs text-slate-500">待保存文件：{file.name}</p>}
       </Panel>
 
       <Panel title="文件列表">
@@ -75,7 +142,23 @@ export default function KnowledgeBase() {
               {items.map((item) => (
                 <tr key={item.id} className="border-t border-slate-200">
                   <td className="px-3 py-2 font-medium">{item.filename}</td>
-                  <td className="px-3 py-2">{item.category}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <Select
+                        className="w-32"
+                        value={categoryDrafts[item.id] || item.category}
+                        onChange={(event) =>
+                          setCategoryDrafts((current) => ({ ...current, [item.id]: event.target.value }))
+                        }
+                      >
+                        {categories.map((name) => <option key={name}>{name}</option>)}
+                      </Select>
+                      <Button onClick={() => saveCategory(item)} disabled={savingCategoryId === item.id} title="保存分类">
+                        <Save size={15} />
+                        保存
+                      </Button>
+                    </div>
+                  </td>
                   <td className="px-3 py-2">{item.chunk_count}</td>
                   <td className="px-3 py-2">{item.status}</td>
                   <td className="px-3 py-2">{new Date(item.upload_time).toLocaleString()}</td>

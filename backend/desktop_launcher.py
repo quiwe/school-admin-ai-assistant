@@ -50,9 +50,9 @@ def configure_runtime(root: Path, port: int) -> None:
         if path.exists() and str(path) not in sys.path:
             sys.path.insert(0, str(path))
 
-    os.environ.setdefault("DATABASE_URL", sqlite_url(data_dir / "app.db"))
-    os.environ.setdefault("UPLOAD_DIR", str(upload_dir))
-    os.environ.setdefault("CORS_ORIGINS", f"http://127.0.0.1:{port},http://localhost:{port}")
+    os.environ["DATABASE_URL"] = sqlite_url(data_dir / "app.db")
+    os.environ["UPLOAD_DIR"] = str(upload_dir)
+    os.environ["CORS_ORIGINS"] = f"http://127.0.0.1:{port},http://localhost:{port}"
     os.chdir(root)
 
 
@@ -145,7 +145,7 @@ def open_desktop_window(root: Path, port: int, server_ready: bool) -> None:
     if server_ready:
         webview.create_window(
             "高校行政 AI 回复助手",
-            f"http://127.0.0.1:{port}",
+            f"http://127.0.0.1:{port}?desktop_build={int(time.time())}",
             width=1280,
             height=820,
             min_size=(1100, 720),

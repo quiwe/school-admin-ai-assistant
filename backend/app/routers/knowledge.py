@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import FAQItem, KnowledgeChunk, KnowledgeFile
-from ..schemas import KnowledgeFileRead
+from ..schemas import KnowledgeFileRead, KnowledgeFileUpdate
 from ..services.file_parser import FileParseError, extract_faq_rows_from_xlsx, parse_file
 from ..services.rag import chunk_text
 from ..settings import settings
@@ -82,6 +82,21 @@ def delete_knowledge(file_id: int, db: Session = Depends(get_db)):
     db.delete(record)
     db.commit()
     return {"ok": True}
+
+
+@router.patch("/{file_id}", response_model=KnowledgeFileRead)
+def update_knowledge(file_id: int, payload: KnowledgeFileUpdate, db: Session = Depends(get_db)):
+    record = db.query(KnowledgeFile).filter(KnowledgeFile.id == file_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="知识库文件不存在。")
+    if payload.category is not None:
+        category = payload.category.strip()
+        if not category:
+            raise HTTPException(status_code=400, detail="分类不能为空。")
+        record.category = category
+    db.commit()
+    db.refresh(record)
+    return record
 
 
 @router.post("/{file_id}/reindex", response_model=KnowledgeFileRead)

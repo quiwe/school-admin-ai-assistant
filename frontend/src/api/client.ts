@@ -107,6 +107,8 @@ export const api = {
   uploadKnowledge: (formData: FormData) =>
     request<KnowledgeFile>("/api/knowledge/upload", { method: "POST", body: formData }),
   listKnowledge: () => request<KnowledgeFile[]>("/api/knowledge/list"),
+  updateKnowledge: (id: number, payload: Partial<KnowledgeFile>) =>
+    request<KnowledgeFile>(`/api/knowledge/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   deleteKnowledge: (id: number) => request(`/api/knowledge/${id}`, { method: "DELETE" }),
   reindexKnowledge: (id: number) => request<KnowledgeFile>(`/api/knowledge/${id}/reindex`, { method: "POST" }),
   createFAQ: (payload: Partial<FAQItem>) =>
