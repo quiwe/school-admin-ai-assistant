@@ -65,7 +65,9 @@ docker compose up --build
 D:\SchoolAdminAIAssistant
 ```
 
-安装后会生成开始菜单快捷方式，可选创建桌面快捷方式。启动后会在本机打开浏览器访问桌面版服务，数据默认保存在安装目录下的 `data` 文件夹中，避免默认写入 C 盘。
+安装后会生成开始菜单快捷方式，可选创建桌面快捷方式。启动后会打开 Windows 桌面窗口，不再跳转到默认浏览器；后台服务只监听本机地址。数据默认保存在安装目录下的 `data` 文件夹中，避免默认写入 C 盘。
+
+桌面版依赖 Microsoft Edge WebView2 Runtime。Windows 10/11 通常已自带；如果极少数机器无法打开窗口，请先安装 WebView2 Runtime。
 
 ## .env 配置
 

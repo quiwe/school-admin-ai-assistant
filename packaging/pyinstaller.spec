@@ -21,6 +21,9 @@ for package in [
     "docx",
     "pypdf",
     "openpyxl",
+    "webview",
+    "clr_loader",
+    "pythonnet",
 ]:
     hiddenimports += collect_submodules(package)
 
