@@ -9,5 +9,6 @@ backend/app/static/
 build/
 dist/
 installer-output/
+logs/
 __pycache__/
 *.pyc
