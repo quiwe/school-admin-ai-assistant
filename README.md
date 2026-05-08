@@ -55,9 +55,9 @@ docker compose up --build
 
 打包产物：
 
-- Artifact 名称：`SchoolAdminAIAssistant-Windows-Installer`
-- 安装包文件：`SchoolAdminAIAssistant-Setup.exe`
-- GitHub Release：每次 `main` 分支打包成功后，会自动创建或更新 `latest` Release，并把安装包上传到 Release 附件。
+- Artifact 名称：`SchoolAdminAIAssistant-Windows-Installer-v版本号`
+- 安装包文件：`SchoolAdminAIAssistant-Setup-v版本号.exe`
+- GitHub Release：每次 `main` 分支打包成功后，会按 `VERSION` 文件创建或更新 `v版本号` Release，并把安装包上传到 Release 附件。
 
 安装包默认安装目录：
 
@@ -68,6 +68,23 @@ D:\SchoolAdminAIAssistant
 安装后会生成开始菜单快捷方式，可选创建桌面快捷方式。启动后会打开 Windows 桌面窗口，不再跳转到默认浏览器；后台服务只监听本机地址。数据默认保存在安装目录下的 `data` 文件夹中，避免默认写入 C 盘。
 
 桌面版依赖 Microsoft Edge WebView2 Runtime。Windows 10/11 通常已自带；如果极少数机器无法打开窗口，请先安装 WebView2 Runtime。
+
+## 版本发布规范
+
+每次更新前维护三个文件：
+
+- `VERSION`：当前软件版本号，例如 `0.2.0`。
+- `DEVELOPER`：开发者或团队名称，会写入安装器发布者和 Release Notes。
+- `CHANGELOG.md`：更新信息，新增 `## 版本号 - 日期` 小节。
+
+发布时 GitHub Actions 会自动读取这些信息：
+
+- 安装器版本号来自 `VERSION`。
+- 安装器开发者/发布者来自 `DEVELOPER`。
+- Release tag 使用 `v版本号`。
+- Release Notes 使用 `CHANGELOG.md` 中当前版本的小节。
+
+软件内“系统设置 - 版本信息”也会显示对应版本号、开发者和更新信息。
 
 ## .env 配置
 

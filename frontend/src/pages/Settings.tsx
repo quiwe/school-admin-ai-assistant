@@ -1,6 +1,6 @@
 import { CheckCircle2, ExternalLink, KeyRound, ListFilter, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { api, AIProviderConfig, AISettingsUpdate } from "../api/client";
+import { api, AIProviderConfig, AISettingsUpdate, AppInfo } from "../api/client";
 import { Input, Panel, PrimaryButton, Select } from "../components/ui";
 
 type ProviderForm = {
@@ -15,11 +15,13 @@ export default function SettingsPage() {
   const [providerForms, setProviderForms] = useState<Record<string, ProviderForm>>({});
   const [modelOptions, setModelOptions] = useState<Record<string, string[]>>({});
   const [loadingModels, setLoadingModels] = useState(false);
+  const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     loadSettings();
+    api.getAppInfo().then(setAppInfo).catch(() => undefined);
   }, []);
 
   const activeProviderInfo = useMemo(
@@ -254,6 +256,19 @@ export default function SettingsPage() {
       <Panel title="回复边界">
         <div className="text-sm leading-6 text-slate-600">
           成绩、处分、奖助学金结果、学籍状态、个人隐私、投诉申诉、情绪危机等问题会自动建议人工核实。所有 AI 回复仍需要老师确认后再复制发送。
+        </div>
+      </Panel>
+
+      <Panel title="版本信息">
+        <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
+          <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
+            <div className="font-semibold text-slate-900">{appInfo?.name || "高校行政 AI 回复助手"}</div>
+            <div className="mt-2 text-slate-600">版本：{appInfo?.version || "-"}</div>
+            <div className="mt-1 text-slate-600">开发者：{appInfo?.developer || "-"}</div>
+          </div>
+          <pre className="max-h-52 overflow-auto whitespace-pre-wrap rounded-md border border-slate-200 bg-white p-3 text-sm leading-6 text-slate-600">
+            {appInfo?.latest_update || "暂无更新信息。"}
+          </pre>
         </div>
       </Panel>
 

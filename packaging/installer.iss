@@ -1,6 +1,13 @@
 #define MyAppName "高校行政AI回复助手"
+#ifndef MyAppVersion
 #define MyAppVersion "0.1.0"
+#endif
+#ifndef MyAppPublisher
 #define MyAppPublisher "School Admin AI Assistant"
+#endif
+#ifndef MyOutputBaseFilename
+#define MyOutputBaseFilename "SchoolAdminAIAssistant-Setup"
+#endif
 #define MyAppExeName "SchoolAdminAIAssistant.exe"
 #define BuildDir "..\dist\SchoolAdminAIAssistant"
 
@@ -9,12 +16,15 @@ AppId={{A1BA8594-BBB8-42E7-9C4F-FDD42E1DD44A}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+VersionInfoVersion={#MyAppVersion}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppName}
 DefaultDirName=D:\SchoolAdminAIAssistant
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=..\installer-output
-OutputBaseFilename=SchoolAdminAIAssistant-Setup
+OutputBaseFilename={#MyOutputBaseFilename}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

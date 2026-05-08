@@ -16,6 +16,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Load release metadata
+        shell: pwsh
+        run: |
+          $version = (Get-Content VERSION -Raw).Trim()
+          $developer = (Get-Content DEVELOPER -Raw).Trim()
+          $installerBaseName = "SchoolAdminAIAssistant-Setup-v$version"
+          $tag = "v$version"
+          $changelog = Get-Content CHANGELOG.md -Raw
+          $escapedVersion = [Regex]::Escape($version)
+          $pattern = "(?ms)^##\s+$escapedVersion\s+-.*?(?=^##\s+|\z)"
+          $match = [Regex]::Match($changelog, $pattern)
+          $notes = if ($match.Success) { $match.Value.Trim() } else { "Version $version`n`n$changelog" }
+          $notes = "$notes`n`n开发者：$developer`n默认安装路径：D:\SchoolAdminAIAssistant"
+
+          "APP_VERSION=$version" >> $env:GITHUB_ENV
+          "APP_DEVELOPER=$developer" >> $env:GITHUB_ENV
+          "RELEASE_TAG=$tag" >> $env:GITHUB_ENV
+          "INSTALLER_BASENAME=$installerBaseName" >> $env:GITHUB_ENV
+          "INSTALLER_PATH=installer-output/$installerBaseName.exe" >> $env:GITHUB_ENV
+          $notesPath = Join-Path $env:RUNNER_TEMP "release-notes.md"
+          Set-Content -Path $notesPath -Value $notes -Encoding UTF8
+          "RELEASE_NOTES_PATH=$notesPath" >> $env:GITHUB_ENV
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -56,22 +79,26 @@ jobs:
       - name: Build installer
         shell: pwsh
         run: |
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" packaging\installer.iss
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" `
+            /DMyAppVersion="$env:APP_VERSION" `
+            /DMyAppPublisher="$env:APP_DEVELOPER" `
+            /DMyOutputBaseFilename="$env:INSTALLER_BASENAME" `
+            packaging\installer.iss
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SchoolAdminAIAssistant-Windows-Installer
-          path: installer-output/SchoolAdminAIAssistant-Setup.exe
+          name: SchoolAdminAIAssistant-Windows-Installer-v${{ env.APP_VERSION }}
+          path: ${{ env.INSTALLER_PATH }}
 
-      - name: Publish latest GitHub Release
+      - name: Publish versioned GitHub Release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "latest"
-          $asset = "installer-output/SchoolAdminAIAssistant-Setup.exe"
-          $notes = "Automated Windows installer build from commit $env:GITHUB_SHA.`n`nDefault install path: D:\SchoolAdminAIAssistant"
+          $tag = $env:RELEASE_TAG
+          $asset = $env:INSTALLER_PATH
+          $title = "高校行政AI回复助手 $env:APP_VERSION"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -80,8 +107,8 @@ jobs:
 
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release edit $tag --title "Latest Windows Installer" --notes $notes
+            gh release edit $tag --title $title --notes-file $env:RELEASE_NOTES_PATH --latest
             gh release upload $tag $asset --clobber
           } else {
-            gh release create $tag $asset --title "Latest Windows Installer" --notes $notes --latest
+            gh release create $tag $asset --title $title --notes-file $env:RELEASE_NOTES_PATH --latest
           }

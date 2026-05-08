@@ -30,6 +30,9 @@ for package in [
 datas = [
     (str(PROJECT_ROOT / "backend" / "app" / "prompts"), "app/prompts"),
     (str(PROJECT_ROOT / "backend" / "app" / "static"), "app/static"),
+    (str(PROJECT_ROOT / "VERSION"), "."),
+    (str(PROJECT_ROOT / "DEVELOPER"), "."),
+    (str(PROJECT_ROOT / "CHANGELOG.md"), "."),
 ]
 
 a = Analysis(

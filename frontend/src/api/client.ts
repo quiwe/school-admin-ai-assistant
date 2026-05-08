@@ -86,6 +86,13 @@ export type AIModelListResponse = {
   source: string;
 };
 
+export type AppInfo = {
+  name: string;
+  version: string;
+  developer: string;
+  latest_update: string;
+};
+
 export const api = {
   generateReply: (question: string, style = "normal") =>
     request<ReplyResponse>("/api/reply/generate", {
@@ -120,5 +127,6 @@ export const api = {
   updateAISettings: (payload: AISettingsUpdate) =>
     request<AISettings>("/api/settings/ai", { method: "PUT", body: JSON.stringify(payload) }),
   listAIModels: (payload: { provider_id: string; api_key?: string; base_url?: string }) =>
-    request<AIModelListResponse>("/api/settings/ai/models", { method: "POST", body: JSON.stringify(payload) })
+    request<AIModelListResponse>("/api/settings/ai/models", { method: "POST", body: JSON.stringify(payload) }),
+  getAppInfo: () => request<AppInfo>("/api/app/info")
 };

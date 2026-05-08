@@ -5,6 +5,7 @@ from pathlib import Path
 
 from .database import Base, engine
 from .routers import faq, history, knowledge, reply, settings as settings_router
+from .services.app_info import get_app_info
 from .settings import settings
 
 Base.metadata.create_all(bind=engine)
@@ -29,6 +30,11 @@ app.include_router(settings_router.router)
 @app.get("/api/health")
 def health_check():
     return {"status": "ok", "app": settings.app_name}
+
+
+@app.get("/api/app/info")
+def app_info():
+    return get_app_info()
 
 
 static_dir = Path(__file__).resolve().parent / "static"
