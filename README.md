@@ -50,8 +50,9 @@ docker compose up --build
 
 触发方式：
 
-- 推送到 `main` 分支自动打包。
-- 在 GitHub 仓库页面进入 `Actions`，手动运行 `Build Windows Installer`。
+- 修改版本时先只在本地提交，不自动推送、不自动打包。
+- 确认发布时再推送代码，并在 GitHub 仓库页面进入 `Actions`，手动运行 `Build Windows Installer`。
+- 只有手动运行打包任务后，才会创建或更新对应版本的 GitHub Release。
 
 打包产物：
 
@@ -77,7 +78,7 @@ D:\SchoolAdminAIAssistant
 - `DEVELOPER`：开发者或团队名称，会写入安装器发布者和 Release Notes。
 - `CHANGELOG.md`：更新信息，新增 `## 版本号 - 日期` 小节。
 
-发布时 GitHub Actions 会自动读取这些信息：
+发布时 GitHub Actions 会读取这些信息：
 
 - 安装器版本号来自 `VERSION`。
 - 安装器开发者/发布者来自 `DEVELOPER`。
