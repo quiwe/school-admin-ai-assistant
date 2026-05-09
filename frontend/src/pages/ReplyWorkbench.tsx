@@ -84,9 +84,13 @@ export default function ReplyWorkbench() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="学生问题">
-          <Textarea value={question} onChange={(event) => setQuestion(event.target.value)} rows={13} />
+          <Textarea
+            className="min-h-[260px] lg:h-[42vh] lg:min-h-[300px] lg:max-h-[520px]"
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+          />
           <div className="mt-3 flex flex-wrap gap-2">
             <PrimaryButton onClick={() => generate("normal")} disabled={loading}>
               <Wand2 size={16} />
@@ -132,7 +136,12 @@ export default function ReplyWorkbench() {
               <span>大模型调用失败：{meta.ai_error}</span>
             </div>
           )}
-          <Textarea value={answer} onChange={(event) => setAnswer(event.target.value)} rows={13} placeholder="生成后的回复会显示在这里，老师可直接修改。" />
+          <Textarea
+            className="min-h-[260px] lg:h-[42vh] lg:min-h-[300px] lg:max-h-[520px]"
+            value={answer}
+            onChange={(event) => setAnswer(event.target.value)}
+            placeholder="生成后的回复会显示在这里，老师可直接修改。"
+          />
           <div className="mt-3 flex flex-wrap gap-2">
             <PrimaryButton onClick={copyAnswer} disabled={!answer}>
               {copied ? <Check size={16} /> : <Clipboard size={16} />}

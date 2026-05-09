@@ -59,7 +59,7 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex w-full max-w-[1760px] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div>
             <h1 className="text-lg font-semibold text-slate-900">高校行政 AI 回复助手</h1>
             <p className="text-xs text-slate-500">桌面端半自动草稿生成，所有回复由老师审核后发送</p>
@@ -69,7 +69,7 @@ export default function App() {
       </header>
       {updateInfo?.has_update && !updateDismissed && (
         <section className="border-b border-amber-200 bg-amber-50">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-3">
+          <div className="mx-auto flex w-full max-w-[1760px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <div className="min-w-0 text-sm text-amber-900">
               <div className="font-semibold">
                 发现新版本 {updateInfo.latest_version}
@@ -99,8 +99,8 @@ export default function App() {
           </div>
         </section>
       )}
-      <div className="mx-auto flex max-w-7xl gap-6 px-6 py-6">
-        <nav className="w-48 shrink-0 space-y-1">
+      <div className="mx-auto flex w-full max-w-[1760px] gap-4 px-4 py-5 sm:px-6 lg:gap-6 lg:px-8">
+        <nav className="w-44 shrink-0 space-y-1 lg:w-48">
           {nav.map((item) => {
             const Icon = item.icon;
             return (
