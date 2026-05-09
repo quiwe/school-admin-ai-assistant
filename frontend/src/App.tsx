@@ -1,5 +1,7 @@
-import { BookOpen, ClipboardList, History, MessageSquareText, Settings } from "lucide-react";
-import { useState } from "react";
+import { BookOpen, ClipboardList, Download, ExternalLink, History, MessageSquareText, Settings, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { api, UpdateCheckResponse } from "./api/client";
+import { Button, PrimaryButton } from "./components/ui";
 import FAQManager from "./pages/FAQManager";
 import HistoryPage from "./pages/History";
 import KnowledgeBase from "./pages/KnowledgeBase";
@@ -16,6 +18,43 @@ const nav = [
 
 export default function App() {
   const [page, setPage] = useState("reply");
+  const [updateInfo, setUpdateInfo] = useState<UpdateCheckResponse | null>(null);
+  const [updateDismissed, setUpdateDismissed] = useState(false);
+  const [installingUpdate, setInstallingUpdate] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState("");
+
+  useEffect(() => {
+    api.checkUpdate()
+      .then((data) => {
+        if (data.has_update) {
+          setUpdateInfo(data);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  async function installUpdate() {
+    if (!updateInfo?.download_url) {
+      openReleasePage(updateInfo?.release_url);
+      return;
+    }
+    setInstallingUpdate(true);
+    setUpdateMessage("正在下载安装包，请稍候...");
+    try {
+      const result = await api.installUpdate();
+      setUpdateMessage(result.message);
+    } catch (err) {
+      setUpdateMessage(err instanceof Error ? err.message : "自动更新失败，请打开发布页手动下载。");
+    } finally {
+      setInstallingUpdate(false);
+    }
+  }
+
+  function openReleasePage(url?: string) {
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  }
 
   return (
     <div className="min-h-screen">
@@ -23,11 +62,43 @@ export default function App() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div>
             <h1 className="text-lg font-semibold text-slate-900">高校行政 AI 回复助手</h1>
-            <p className="text-xs text-slate-500">网页半自动草稿生成，所有回复由老师审核后发送</p>
+            <p className="text-xs text-slate-500">桌面端半自动草稿生成，所有回复由老师审核后发送</p>
           </div>
-          <div className="rounded-md bg-blue-50 px-3 py-1 text-xs text-blue-700">MVP</div>
+          <div className="rounded-md bg-blue-50 px-3 py-1 text-xs text-blue-700">桌面版</div>
         </div>
       </header>
+      {updateInfo?.has_update && !updateDismissed && (
+        <section className="border-b border-amber-200 bg-amber-50">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-3">
+            <div className="min-w-0 text-sm text-amber-900">
+              <div className="font-semibold">
+                发现新版本 {updateInfo.latest_version}
+                <span className="ml-2 font-normal text-amber-700">当前版本 {updateInfo.current_version}</span>
+              </div>
+              <div className="mt-1 line-clamp-2 text-xs leading-5 text-amber-800">
+                {updateMessage || updateInfo.body || "建议更新到最新版本以获得修复和新功能。"}
+              </div>
+              {updateInfo.asset_size ? (
+                <div className="mt-1 text-xs text-amber-700">安装包大小：{formatBytes(updateInfo.asset_size)}</div>
+              ) : null}
+            </div>
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <PrimaryButton onClick={installUpdate} disabled={installingUpdate}>
+                <Download size={16} />
+                {installingUpdate ? "更新中" : "立即更新"}
+              </PrimaryButton>
+              <Button onClick={() => openReleasePage(updateInfo.release_url)}>
+                <ExternalLink size={16} />
+                发布页
+              </Button>
+              <Button onClick={() => setUpdateDismissed(true)} title="稍后提醒">
+                <X size={16} />
+                稍后
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
       <div className="mx-auto flex max-w-7xl gap-6 px-6 py-6">
         <nav className="w-48 shrink-0 space-y-1">
           {nav.map((item) => {
@@ -64,4 +135,11 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024 * 1024) {
+    return `${Math.round(bytes / 1024)} KB`;
+  }
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }

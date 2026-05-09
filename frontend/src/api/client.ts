@@ -19,6 +19,10 @@ export type ReplyResponse = {
   confidence: number;
   need_human_review: boolean;
   references: Reference[];
+  ai_used: boolean;
+  ai_provider?: string | null;
+  ai_model?: string | null;
+  ai_error?: string | null;
 };
 
 export type KnowledgeFile = {
@@ -93,6 +97,25 @@ export type AppInfo = {
   latest_update: string;
 };
 
+export type UpdateCheckResponse = {
+  current_version: string;
+  latest_version: string;
+  has_update: boolean;
+  release_url: string;
+  asset_name?: string | null;
+  download_url?: string | null;
+  asset_size?: number | null;
+  digest?: string | null;
+  published_at?: string | null;
+  body: string;
+};
+
+export type UpdateInstallResponse = {
+  ok: boolean;
+  message: string;
+  installer_path?: string | null;
+};
+
 export const api = {
   generateReply: (question: string, style = "normal") =>
     request<ReplyResponse>("/api/reply/generate", {
@@ -130,5 +153,7 @@ export const api = {
     request<AISettings>("/api/settings/ai", { method: "PUT", body: JSON.stringify(payload) }),
   listAIModels: (payload: { provider_id: string; api_key?: string; base_url?: string }) =>
     request<AIModelListResponse>("/api/settings/ai/models", { method: "POST", body: JSON.stringify(payload) }),
-  getAppInfo: () => request<AppInfo>("/api/app/info")
+  getAppInfo: () => request<AppInfo>("/api/app/info"),
+  checkUpdate: () => request<UpdateCheckResponse>("/api/app/update/check"),
+  installUpdate: () => request<UpdateInstallResponse>("/api/app/update/install", { method: "POST" })
 };

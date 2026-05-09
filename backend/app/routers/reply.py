@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -11,6 +13,8 @@ from ..services.safety import HUMAN_REVIEW_TEMPLATE, detect_sensitive
 
 router = APIRouter(prefix="/api/reply", tags=["reply"])
 
+RELIABLE_REFERENCE_CONFIDENCE = 0.45
+
 
 @router.post("/generate", response_model=GenerateReplyResponse)
 def generate_reply(payload: GenerateReplyRequest, db: Session = Depends(get_db)):
@@ -18,7 +22,7 @@ def generate_reply(payload: GenerateReplyRequest, db: Session = Depends(get_db))
     sensitive, _ = detect_sensitive(payload.question)
     references = retrieve_references(db, payload.question, limit=5)
     confidence = confidence_from_references(references)
-    need_human_review = sensitive or not references or confidence < 0.45
+    has_reliable_references = bool(references) and confidence >= RELIABLE_REFERENCE_CONFIDENCE
 
     response_references = [
         Reference(title=ref.title, content=ref.content[:500]) for ref in references
@@ -31,9 +35,10 @@ def generate_reply(payload: GenerateReplyRequest, db: Session = Depends(get_db))
             confidence=confidence,
             need_human_review=True,
             references=response_references,
+            ai_used=False,
         )
 
-    if not references:
+    if not has_reliable_references:
         answer = (
             "同学你好，这个问题目前在已有知识库中没有找到明确依据，需要进一步核实后再回复。"
             "请先补充姓名、学号、专业及相关截图或材料，老师确认具体情况后再给你准确答复。"
@@ -41,23 +46,43 @@ def generate_reply(payload: GenerateReplyRequest, db: Session = Depends(get_db))
         return GenerateReplyResponse(
             answer=answer,
             category=category,
-            confidence=0.0,
+            confidence=confidence,
             need_human_review=True,
-            references=[],
+            references=response_references,
+            ai_used=False,
         )
 
+    ai_config = get_ai_config(db)
     refs_for_ai = [{"title": ref.title, "content": ref.content[:800]} for ref in references]
     try:
-        answer = ai_provider.generate_reply(payload.question, refs_for_ai, payload.style, get_ai_config(db))
-    except Exception:
-        answer = fallback_answer(payload.question, references)
+        answer = ai_provider.generate_reply(payload.question, refs_for_ai, payload.style, ai_config)
+        if not answer.strip():
+            raise RuntimeError("大模型返回了空内容。")
+    except Exception as exc:
+        return GenerateReplyResponse(
+            answer=(
+                "已检索到知识库依据，但当前大模型调用失败，暂时不能生成可发送回复。"
+                "请到系统设置检查 API Key、Base URL 和模型名称，确认模型连接正常后再生成。"
+            ),
+            category=category,
+            confidence=confidence,
+            need_human_review=True,
+            references=response_references,
+            ai_used=False,
+            ai_provider=ai_config.ai_provider,
+            ai_model=ai_config.model,
+            ai_error=safe_error_message(exc),
+        )
 
     return GenerateReplyResponse(
         answer=answer.strip(),
         category=category,
         confidence=confidence,
-        need_human_review=need_human_review,
+        need_human_review=False,
         references=response_references,
+        ai_used=True,
+        ai_provider=ai_config.ai_provider,
+        ai_model=ai_config.model,
     )
 
 
@@ -70,15 +95,11 @@ def rewrite_reply(payload: RewriteReplyRequest, db: Session = Depends(get_db)):
     return {"answer": answer.strip()}
 
 
-def fallback_answer(question: str, references) -> str:
-    top = references[0]
-    if top.source_type == "faq" and "答：" in top.content:
-        return top.content.split("答：", 1)[1].strip()
-    return (
-        "同学你好，根据目前查询到的材料，建议先按学院或系统通知要求准备并提交相关信息。"
-        "如系统状态或材料内容仍无法确认，请将姓名、学号、专业及截图发给负责老师进一步核实。"
-        "后续办理结果以系统显示和学院通知为准。"
-    )
+def safe_error_message(exc: Exception) -> str:
+    message = str(exc)
+    message = re.sub(r"sk-[A-Za-z0-9_-]{6,}", "sk-***", message)
+    message = re.sub(r"([A-Za-z0-9_-]{4})[A-Za-z0-9_-]{12,}", r"\1***", message)
+    return message[:500]
 
 
 def local_rewrite(answer: str, style: str) -> str:

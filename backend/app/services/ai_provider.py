@@ -17,6 +17,9 @@ class AIProvider:
             f"学生问题：{question}\n\n"
             f"可用依据：\n{context}\n\n"
             f"回复风格：{style}\n"
+            "请先判断可用依据是否能支持回答学生问题。"
+            "如果 FAQ 与学生问题只是问法不同但含义一致，可以按 FAQ 标准答案组织回复。"
+            "如果依据不能支持回答，请只说明该问题需要进一步核实。"
             "请生成一段可直接复制到微信发送的回复。"
         )
         return self._chat(user_prompt, config)

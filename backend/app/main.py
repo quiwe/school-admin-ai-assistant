@@ -1,11 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 from .database import Base, engine
 from .routers import faq, history, knowledge, reply, settings as settings_router
+from .schemas import UpdateCheckResponse, UpdateInstallResponse
 from .services.app_info import get_app_info
+from .services.updater import UpdateError, check_for_update, download_and_launch_update
 from .settings import settings
 
 Base.metadata.create_all(bind=engine)
@@ -35,6 +37,27 @@ def health_check():
 @app.get("/api/app/info")
 def app_info():
     return get_app_info()
+
+
+@app.get("/api/app/update/check", response_model=UpdateCheckResponse)
+def update_check():
+    try:
+        return check_for_update().__dict__
+    except UpdateError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/api/app/update/install", response_model=UpdateInstallResponse)
+def update_install():
+    try:
+        installer = download_and_launch_update()
+    except UpdateError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {
+        "ok": True,
+        "message": "安装程序已启动，请按提示完成更新。桌面端会自动关闭。",
+        "installer_path": str(installer),
+    }
 
 
 static_dir = Path(__file__).resolve().parent / "static"

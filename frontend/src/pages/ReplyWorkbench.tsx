@@ -1,4 +1,4 @@
-import { Check, Clipboard, Eraser, RefreshCw, Save, Wand2 } from "lucide-react";
+import { AlertCircle, Check, Clipboard, Eraser, RefreshCw, Save, Wand2 } from "lucide-react";
 import { useState } from "react";
 import { api, Reference, ReplyResponse } from "../api/client";
 import { Button, Panel, PrimaryButton, Textarea } from "../components/ui";
@@ -9,10 +9,12 @@ export default function ReplyWorkbench() {
   const [meta, setMeta] = useState<Omit<ReplyResponse, "answer"> | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
 
   async function generate(style = "normal") {
     if (!question.trim()) return;
     setLoading(true);
+    setError("");
     try {
       const data = await api.generateReply(question, style);
       setAnswer(data.answer);
@@ -20,7 +22,11 @@ export default function ReplyWorkbench() {
         category: data.category,
         confidence: data.confidence,
         need_human_review: data.need_human_review,
-        references: data.references
+        references: data.references,
+        ai_used: data.ai_used,
+        ai_provider: data.ai_provider,
+        ai_model: data.ai_model,
+        ai_error: data.ai_error
       });
       await api.createHistory({
         student_question: question,
@@ -30,6 +36,8 @@ export default function ReplyWorkbench() {
         confidence: data.confidence,
         need_human_review: data.need_human_review
       });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "生成失败");
     } finally {
       setLoading(false);
     }
@@ -38,9 +46,12 @@ export default function ReplyWorkbench() {
   async function rewrite(style: string) {
     if (!answer.trim()) return;
     setLoading(true);
+    setError("");
     try {
       const data = await api.rewriteReply(question, answer, style);
       setAnswer(data.answer);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "改写失败");
     } finally {
       setLoading(false);
     }
@@ -89,6 +100,9 @@ export default function ReplyWorkbench() {
             meta ? (
               <div className="flex items-center gap-2 text-xs">
                 <span className="rounded bg-slate-100 px-2 py-1">{meta.category}</span>
+                <span className={meta.ai_used ? "text-emerald-700" : "text-slate-500"}>
+                  {meta.ai_used ? `已调用模型${meta.ai_model ? `：${meta.ai_model}` : ""}` : "未调用模型"}
+                </span>
                 <span className={meta.need_human_review ? "text-amber-700" : "text-emerald-700"}>
                   {meta.need_human_review ? "建议人工核实" : "可审核后发送"}
                 </span>
@@ -97,6 +111,18 @@ export default function ReplyWorkbench() {
             ) : null
           }
         >
+          {error && (
+            <div className="mb-3 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-700">
+              <AlertCircle className="mt-0.5 shrink-0" size={16} />
+              <span>{error}</span>
+            </div>
+          )}
+          {meta?.ai_error && (
+            <div className="mb-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-800">
+              <AlertCircle className="mt-0.5 shrink-0" size={16} />
+              <span>大模型调用失败：{meta.ai_error}</span>
+            </div>
+          )}
           <Textarea value={answer} onChange={(event) => setAnswer(event.target.value)} rows={13} placeholder="生成后的回复会显示在这里，老师可直接修改。" />
           <div className="mt-3 flex flex-wrap gap-2">
             <PrimaryButton onClick={copyAnswer} disabled={!answer}>

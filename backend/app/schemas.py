@@ -19,6 +19,10 @@ class GenerateReplyResponse(BaseModel):
     confidence: float
     need_human_review: bool
     references: list[Reference]
+    ai_used: bool = False
+    ai_provider: str | None = None
+    ai_model: str | None = None
+    ai_error: str | None = None
 
 
 class RewriteReplyRequest(BaseModel):
@@ -132,3 +136,22 @@ class AIModelListRequest(BaseModel):
 class AIModelListResponse(BaseModel):
     models: list[str]
     source: str
+
+
+class UpdateCheckResponse(BaseModel):
+    current_version: str
+    latest_version: str
+    has_update: bool
+    release_url: str
+    asset_name: str | None = None
+    download_url: str | None = None
+    asset_size: int | None = None
+    digest: str | None = None
+    published_at: str | None = None
+    body: str = ""
+
+
+class UpdateInstallResponse(BaseModel):
+    ok: bool
+    message: str
+    installer_path: str | None = None
