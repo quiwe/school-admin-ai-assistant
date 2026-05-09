@@ -12,6 +12,18 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json();
 }
 
+async function requestBlob(path: string, options?: RequestInit): Promise<Blob> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: options?.body instanceof FormData ? undefined : { "Content-Type": "application/json" },
+    ...options
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.detail || "请求失败");
+  }
+  return response.blob();
+}
+
 export type Reference = { title: string; content: string };
 export type ReplyResponse = {
   answer: string;
@@ -43,6 +55,10 @@ export type FAQItem = {
   allow_auto_reply: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type FAQImportResponse = {
+  imported: number;
 };
 
 export type HistoryItem = {
@@ -116,6 +132,11 @@ export type UpdateInstallResponse = {
   installer_path?: string | null;
 };
 
+export type DeleteResponse = {
+  ok: boolean;
+  deleted: number;
+};
+
 export const api = {
   generateReply: (question: string, style = "normal") =>
     request<ReplyResponse>("/api/reply/generate", {
@@ -137,6 +158,10 @@ export const api = {
   createFAQ: (payload: Partial<FAQItem>) =>
     request<FAQItem>("/api/faq/create", { method: "POST", body: JSON.stringify(payload) }),
   listFAQ: (keyword = "") => request<FAQItem[]>(`/api/faq/list${keyword ? `?keyword=${encodeURIComponent(keyword)}` : ""}`),
+  importFAQ: (formData: FormData) =>
+    request<FAQImportResponse>("/api/faq/import", { method: "POST", body: formData }),
+  exportFAQ: (keyword = "") =>
+    requestBlob(`/api/faq/export${keyword ? `?keyword=${encodeURIComponent(keyword)}` : ""}`),
   updateFAQ: (id: number, payload: Partial<FAQItem>) =>
     request<FAQItem>(`/api/faq/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
   deleteFAQ: (id: number) => request(`/api/faq/${id}`, { method: "DELETE" }),
@@ -148,6 +173,9 @@ export const api = {
   },
   createHistory: (payload: Partial<HistoryItem>) =>
     request<HistoryItem>("/api/history/create", { method: "POST", body: JSON.stringify(payload) }),
+  deleteHistory: (ids: number[]) =>
+    request<DeleteResponse>("/api/history/delete", { method: "POST", body: JSON.stringify({ ids }) }),
+  deleteHistoryItem: (id: number) => request<DeleteResponse>(`/api/history/${id}`, { method: "DELETE" }),
   getAISettings: () => request<AISettings>("/api/settings/ai"),
   updateAISettings: (payload: AISettingsUpdate) =>
     request<AISettings>("/api/settings/ai", { method: "PUT", body: JSON.stringify(payload) }),

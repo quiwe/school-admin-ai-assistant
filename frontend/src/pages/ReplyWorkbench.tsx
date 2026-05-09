@@ -10,6 +10,7 @@ export default function ReplyWorkbench() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const [faqMessage, setFAQMessage] = useState("");
 
   async function generate(style = "normal") {
     if (!question.trim()) return;
@@ -65,12 +66,20 @@ export default function ReplyWorkbench() {
 
   async function saveFAQ() {
     if (!question.trim() || !answer.trim()) return;
-    await api.createFAQ({
-      question,
-      answer,
-      category: meta?.category || "其他",
-      allow_auto_reply: true
-    });
+    setError("");
+    setFAQMessage("");
+    try {
+      await api.createFAQ({
+        question: question.trim(),
+        answer: answer.trim(),
+        category: meta?.category || "其他",
+        allow_auto_reply: true
+      });
+      setFAQMessage("已保存到 FAQ 管理");
+      setTimeout(() => setFAQMessage(""), 1800);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "保存 FAQ 失败");
+    }
   }
 
   return (
@@ -136,6 +145,7 @@ export default function ReplyWorkbench() {
               <Save size={16} />
               保存 FAQ
             </Button>
+            {faqMessage && <span className="inline-flex h-9 items-center text-sm text-emerald-700">{faqMessage}</span>}
             <Button
               onClick={() => setMeta((current) => current ? { ...current, need_human_review: true } : current)}
               disabled={!answer}

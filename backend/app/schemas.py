@@ -75,6 +75,10 @@ class FAQRead(BaseModel):
         from_attributes = True
 
 
+class FAQImportResponse(BaseModel):
+    imported: int
+
+
 class HistoryCreate(BaseModel):
     student_question: str
     ai_answer: str
@@ -96,6 +100,15 @@ class HistoryRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class HistoryDeleteRequest(BaseModel):
+    ids: list[int] = Field(default_factory=list)
+
+
+class DeleteResponse(BaseModel):
+    ok: bool
+    deleted: int = 0
 
 
 class AIProviderConfigRead(BaseModel):

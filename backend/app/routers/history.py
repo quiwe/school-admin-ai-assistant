@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import ReplyHistory
-from ..schemas import HistoryCreate, HistoryRead
+from ..schemas import DeleteResponse, HistoryCreate, HistoryDeleteRequest, HistoryRead
 
 router = APIRouter(prefix="/api/history", tags=["history"])
 
@@ -33,3 +33,23 @@ def create_history(payload: HistoryCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(item)
     return item
+
+
+@router.post("/delete", response_model=DeleteResponse)
+def delete_history(payload: HistoryDeleteRequest, db: Session = Depends(get_db)):
+    ids = sorted(set(payload.ids))
+    if not ids:
+        raise HTTPException(status_code=400, detail="请选择要删除的历史问题。")
+    deleted = db.query(ReplyHistory).filter(ReplyHistory.id.in_(ids)).delete(synchronize_session=False)
+    db.commit()
+    return DeleteResponse(ok=True, deleted=deleted)
+
+
+@router.delete("/{history_id}", response_model=DeleteResponse)
+def delete_history_item(history_id: int, db: Session = Depends(get_db)):
+    item = db.query(ReplyHistory).filter(ReplyHistory.id == history_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="历史记录不存在。")
+    db.delete(item)
+    db.commit()
+    return DeleteResponse(ok=True, deleted=1)

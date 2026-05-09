@@ -1,4 +1,4 @@
-import { Edit3, Plus, Search, Trash2 } from "lucide-react";
+import { Download, Edit3, Plus, Search, Trash2, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, FAQItem } from "../api/client";
 import { Button, categories, Input, Panel, PrimaryButton, Select, Textarea } from "../components/ui";
@@ -10,6 +10,12 @@ export default function FAQManager() {
   const [keyword, setKeyword] = useState("");
   const [form, setForm] = useState(emptyForm);
   const [editing, setEditing] = useState<number | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   async function load() {
     setItems(await api.listFAQ(keyword));
@@ -21,14 +27,27 @@ export default function FAQManager() {
 
   async function submit() {
     if (!form.question || !form.answer) return;
-    if (editing) {
-      await api.updateFAQ(editing, form);
-    } else {
-      await api.createFAQ(form);
+    setMessage("");
+    setError("");
+    try {
+      const payload = {
+        ...form,
+        question: form.question.trim(),
+        answer: form.answer.trim()
+      };
+      if (editing) {
+        await api.updateFAQ(editing, payload);
+        setMessage("已保存 FAQ 修改");
+      } else {
+        await api.createFAQ(payload);
+        setMessage("已新增 FAQ");
+      }
+      setForm(emptyForm);
+      setEditing(null);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "保存 FAQ 失败");
     }
-    setForm(emptyForm);
-    setEditing(null);
-    await load();
   }
 
   function edit(item: FAQItem) {
@@ -42,13 +61,70 @@ export default function FAQManager() {
   }
 
   async function remove(id: number) {
-    await api.deleteFAQ(id);
-    await load();
+    setMessage("");
+    setError("");
+    try {
+      await api.deleteFAQ(id);
+      setMessage("已删除 FAQ");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "删除 FAQ 失败");
+    }
+  }
+
+  async function importFAQ() {
+    if (!file) return;
+    setImporting(true);
+    setMessage("");
+    setError("");
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const result = await api.importFAQ(formData);
+      setFile(null);
+      setFileInputKey((current) => current + 1);
+      setMessage(`已导入 ${result.imported} 条 FAQ`);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "导入 FAQ 失败");
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  async function exportFAQ() {
+    setExporting(true);
+    setMessage("");
+    setError("");
+    try {
+      const blob = await api.exportFAQ(keyword);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "faq-export.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setMessage("已导出 FAQ");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "导出 FAQ 失败");
+    } finally {
+      setExporting(false);
+    }
   }
 
   return (
     <div className="space-y-4">
-      <Panel title={editing ? "编辑 FAQ" : "新增 FAQ"}>
+      <Panel
+        title={editing ? "编辑 FAQ" : "新增 FAQ"}
+        action={
+          <div className="text-xs">
+            {message && <span className="text-emerald-700">{message}</span>}
+            {error && <span className="text-red-600">{error}</span>}
+          </div>
+        }
+      >
         <div className="grid gap-3 lg:grid-cols-2">
           <Textarea rows={4} placeholder="常见问题" value={form.question} onChange={(event) => setForm({ ...form, question: event.target.value })} />
           <Textarea rows={4} placeholder="标准答案" value={form.answer} onChange={(event) => setForm({ ...form, answer: event.target.value })} />
@@ -67,6 +143,30 @@ export default function FAQManager() {
           </PrimaryButton>
           {editing && <Button onClick={() => { setEditing(null); setForm(emptyForm); }}>取消</Button>}
         </div>
+      </Panel>
+
+      <Panel title="导入导出 FAQ">
+        <div className="grid gap-3 md:grid-cols-[1fr_auto_auto]">
+          <Input
+            key={fileInputKey}
+            type="file"
+            accept=".xls,.xlsx"
+            onChange={(event) => {
+              setFile(event.target.files?.[0] || null);
+              setMessage("");
+              setError("");
+            }}
+          />
+          <PrimaryButton onClick={importFAQ} disabled={!file || importing}>
+            <Upload size={16} />
+            {importing ? "导入中" : "导入 FAQ"}
+          </PrimaryButton>
+          <Button onClick={exportFAQ} disabled={exporting}>
+            <Download size={16} />
+            {exporting ? "导出中" : "导出 FAQ"}
+          </Button>
+        </div>
+        {file && <p className="mt-2 text-xs text-slate-500">待导入文件：{file.name}</p>}
       </Panel>
 
       <Panel
