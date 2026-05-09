@@ -1,4 +1,4 @@
-import { Edit3, Plus, Search, Trash2 } from "lucide-react";
+import { Download, Edit3, FileUp, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, FAQItem } from "../api/client";
 import { Button, categories, Input, Panel, PrimaryButton, Select, Textarea } from "../components/ui";
@@ -10,9 +10,45 @@ export default function FAQManager() {
   const [keyword, setKeyword] = useState("");
   const [form, setForm] = useState(emptyForm);
   const [editing, setEditing] = useState<number | null>(null);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   async function load() {
     setItems(await api.listFAQ(keyword));
+  }
+
+  async function importFAQ() {
+    if (!importFile) return;
+    setError("");
+    setMessage("");
+    setImporting(true);
+    const formData = new FormData();
+    formData.append("file", importFile);
+    try {
+      const result = await api.importFAQ(formData);
+      setMessage(`导入成功，共 ${result.imported} 条 FAQ`);
+      setImportFile(null);
+      setFileInputKey((current) => current + 1);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "导入失败");
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  async function exportFAQ() {
+    setError("");
+    setMessage("");
+    try {
+      await api.exportFAQ();
+      setMessage("导出成功");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "导出失败");
+    }
   }
 
   useEffect(() => {
@@ -67,6 +103,39 @@ export default function FAQManager() {
           </PrimaryButton>
           {editing && <Button onClick={() => { setEditing(null); setForm(emptyForm); }}>取消</Button>}
         </div>
+      </Panel>
+
+      <Panel
+        title="导入导出"
+        action={
+          <div className="text-xs">
+            {message && <span className="text-emerald-700">{message}</span>}
+            {error && <span className="text-red-600">{error}</span>}
+          </div>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          <Input
+            key={fileInputKey}
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={(event) => {
+              setImportFile(event.target.files?.[0] || null);
+              setMessage("");
+              setError("");
+            }}
+          />
+          <PrimaryButton onClick={importFAQ} disabled={!importFile || importing}>
+            <FileUp size={16} />
+            {importing ? "导入中" : "导入 Excel"}
+          </PrimaryButton>
+          <Button onClick={exportFAQ}>
+            <Download size={16} />
+            导出 Excel
+          </Button>
+        </div>
+        {importFile && <p className="mt-2 text-xs text-slate-500">待导入文件：{importFile.name}</p>}
+        <p className="mt-2 text-xs text-slate-400">导入格式：Excel 表头需包含"问题"和"答案"列，可选"分类"列。</p>
       </Panel>
 
       <Panel

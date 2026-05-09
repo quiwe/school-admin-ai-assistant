@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -33,3 +34,26 @@ def create_history(payload: HistoryCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(item)
     return item
+
+
+@router.delete("/{history_id}")
+def delete_history(history_id: int, db: Session = Depends(get_db)):
+    item = db.query(ReplyHistory).filter(ReplyHistory.id == history_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="历史记录不存在。")
+    db.delete(item)
+    db.commit()
+    return {"ok": True}
+
+
+class BatchDeleteRequest(BaseModel):
+    ids: list[int]
+
+
+@router.post("/batch-delete")
+def batch_delete_history(payload: BatchDeleteRequest, db: Session = Depends(get_db)):
+    if not payload.ids:
+        raise HTTPException(status_code=400, detail="请选择要删除的记录。")
+    deleted = db.query(ReplyHistory).filter(ReplyHistory.id.in_(payload.ids)).delete(synchronize_session=False)
+    db.commit()
+    return {"ok": True, "deleted": deleted}

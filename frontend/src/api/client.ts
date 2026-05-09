@@ -140,6 +140,19 @@ export const api = {
   updateFAQ: (id: number, payload: Partial<FAQItem>) =>
     request<FAQItem>(`/api/faq/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
   deleteFAQ: (id: number) => request(`/api/faq/${id}`, { method: "DELETE" }),
+  importFAQ: (formData: FormData) =>
+    request<{ ok: boolean; imported: number }>("/api/faq/import", { method: "POST", body: formData }),
+  exportFAQ: async () => {
+    const response = await fetch(`${API_BASE}/api/faq/export`);
+    if (!response.ok) throw new Error("导出失败");
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "faq_export.xlsx";
+    link.click();
+    URL.revokeObjectURL(url);
+  },
   listHistory: (keyword = "", category = "") => {
     const params = new URLSearchParams();
     if (keyword) params.set("keyword", keyword);
@@ -148,6 +161,12 @@ export const api = {
   },
   createHistory: (payload: Partial<HistoryItem>) =>
     request<HistoryItem>("/api/history/create", { method: "POST", body: JSON.stringify(payload) }),
+  deleteHistory: (id: number) => request(`/api/history/${id}`, { method: "DELETE" }),
+  batchDeleteHistory: (ids: number[]) =>
+    request<{ ok: boolean; deleted: number }>("/api/history/batch-delete", {
+      method: "POST",
+      body: JSON.stringify({ ids })
+    }),
   getAISettings: () => request<AISettings>("/api/settings/ai"),
   updateAISettings: (payload: AISettingsUpdate) =>
     request<AISettings>("/api/settings/ai", { method: "PUT", body: JSON.stringify(payload) }),

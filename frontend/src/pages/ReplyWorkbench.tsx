@@ -9,6 +9,7 @@ export default function ReplyWorkbench() {
   const [meta, setMeta] = useState<Omit<ReplyResponse, "answer"> | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [faqSaved, setFaqSaved] = useState(false);
   const [error, setError] = useState("");
 
   async function generate(style = "normal") {
@@ -65,12 +66,19 @@ export default function ReplyWorkbench() {
 
   async function saveFAQ() {
     if (!question.trim() || !answer.trim()) return;
-    await api.createFAQ({
-      question,
-      answer,
-      category: meta?.category || "其他",
-      allow_auto_reply: true
-    });
+    setError("");
+    try {
+      await api.createFAQ({
+        question,
+        answer,
+        category: meta?.category || "其他",
+        allow_auto_reply: true
+      });
+      setFaqSaved(true);
+      setTimeout(() => setFaqSaved(false), 1500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "保存 FAQ 失败");
+    }
   }
 
   return (
@@ -132,9 +140,9 @@ export default function ReplyWorkbench() {
             <Button onClick={() => rewrite("formal")} disabled={loading || !answer}>更正式</Button>
             <Button onClick={() => rewrite("shorter")} disabled={loading || !answer}>更简短</Button>
             <Button onClick={() => rewrite("warmer")} disabled={loading || !answer}>更温和</Button>
-            <Button onClick={saveFAQ} disabled={!answer}>
-              <Save size={16} />
-              保存 FAQ
+            <Button onClick={saveFAQ} disabled={!answer || faqSaved}>
+              {faqSaved ? <Check size={16} /> : <Save size={16} />}
+              {faqSaved ? "已保存" : "保存 FAQ"}
             </Button>
             <Button
               onClick={() => setMeta((current) => current ? { ...current, need_human_review: true } : current)}

@@ -8,7 +8,7 @@ from PyInstaller.utils.hooks import collect_submodules
 PROJECT_ROOT = Path(SPECPATH).parent
 
 
-hiddenimports = []
+hiddenimports = collect_submodules("app")
 for package in [
     "uvicorn",
     "fastapi",
