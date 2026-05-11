@@ -59,6 +59,7 @@ export type FAQItem = {
 
 export type FAQImportResponse = {
   imported: number;
+  skipped_duplicates: number;
 };
 
 export type HistoryItem = {
@@ -106,6 +107,21 @@ export type AIModelListResponse = {
   source: string;
 };
 
+export type AIProviderTestResponse = {
+  ok: boolean;
+  message: string;
+  latency_ms: number;
+  preview: string;
+};
+
+export type BackupImportResponse = {
+  ok: boolean;
+  imported_faq: number;
+  skipped_faq_duplicates: number;
+  imported_knowledge_files: number;
+  imported_history: number;
+};
+
 export type AppInfo = {
   name: string;
   version: string;
@@ -124,6 +140,9 @@ export type UpdateCheckResponse = {
   digest?: string | null;
   published_at?: string | null;
   body: string;
+  min_supported_version?: string | null;
+  force_update: boolean;
+  update_required_message?: string | null;
 };
 
 export type UpdateInstallResponse = {
@@ -155,9 +174,14 @@ export const api = {
     request<KnowledgeFile>(`/api/knowledge/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   deleteKnowledge: (id: number) => request(`/api/knowledge/${id}`, { method: "DELETE" }),
   reindexKnowledge: (id: number) => request<KnowledgeFile>(`/api/knowledge/${id}/reindex`, { method: "POST" }),
-  createFAQ: (payload: Partial<FAQItem>) =>
+  createFAQ: (payload: Partial<FAQItem> & { force?: boolean }) =>
     request<FAQItem>("/api/faq/create", { method: "POST", body: JSON.stringify(payload) }),
   listFAQ: (keyword = "") => request<FAQItem[]>(`/api/faq/list${keyword ? `?keyword=${encodeURIComponent(keyword)}` : ""}`),
+  similarFAQ: (question: string, excludeId?: number) => {
+    const params = new URLSearchParams({ question });
+    if (excludeId) params.set("exclude_id", String(excludeId));
+    return request<FAQItem[]>(`/api/faq/similar?${params}`);
+  },
   importFAQ: (formData: FormData) =>
     request<FAQImportResponse>("/api/faq/import", { method: "POST", body: formData }),
   exportFAQ: (keyword = "") =>
@@ -181,7 +205,12 @@ export const api = {
     request<AISettings>("/api/settings/ai", { method: "PUT", body: JSON.stringify(payload) }),
   listAIModels: (payload: { provider_id: string; api_key?: string; base_url?: string }) =>
     request<AIModelListResponse>("/api/settings/ai/models", { method: "POST", body: JSON.stringify(payload) }),
+  testAIProvider: (payload: { provider_id: string; api_key?: string; base_url?: string; model?: string }) =>
+    request<AIProviderTestResponse>("/api/settings/ai/test", { method: "POST", body: JSON.stringify(payload) }),
   getAppInfo: () => request<AppInfo>("/api/app/info"),
   checkUpdate: () => request<UpdateCheckResponse>("/api/app/update/check"),
-  installUpdate: () => request<UpdateInstallResponse>("/api/app/update/install", { method: "POST" })
+  installUpdate: () => request<UpdateInstallResponse>("/api/app/update/install", { method: "POST" }),
+  exportData: () => requestBlob("/api/data/export"),
+  importData: (formData: FormData) =>
+    request<BackupImportResponse>("/api/data/import", { method: "POST", body: formData })
 };

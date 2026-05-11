@@ -47,6 +47,10 @@ class AIProvider:
         )
         if config.provider_type == "ollama_native":
             return self._chat_ollama(user_prompt, config)
+        if config.provider_type == "anthropic_native":
+            return self._chat_anthropic(user_prompt, config)
+        if config.provider_type == "gemini_native":
+            return self._chat_gemini(user_prompt, config)
         return self._chat_openai_compatible(user_prompt, config)
 
     def _chat_openai_compatible(self, user_prompt: str, config: AIConfig) -> str:
@@ -75,6 +79,47 @@ class AIProvider:
             response.raise_for_status()
             data = response.json()
         return data.get("message", {}).get("content", "")
+
+    def _chat_anthropic(self, user_prompt: str, config: AIConfig) -> str:
+        if not config.api_key:
+            raise RuntimeError("Claude / Anthropic 需要 API Key。")
+        payload = {
+            "model": config.model,
+            "max_tokens": 1200,
+            "temperature": 0.2,
+            "system": SYSTEM_PROMPT,
+            "messages": [{"role": "user", "content": user_prompt}],
+        }
+        headers = {
+            "x-api-key": config.api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+        with httpx.Client(timeout=90) as client:
+            response = client.post(f"{config.base_url.rstrip('/')}/messages", headers=headers, json=payload)
+            response.raise_for_status()
+            data = response.json()
+        parts = data.get("content") or []
+        return "".join(part.get("text", "") for part in parts if part.get("type") == "text").strip()
+
+    def _chat_gemini(self, user_prompt: str, config: AIConfig) -> str:
+        if not config.api_key:
+            raise RuntimeError("Google Gemini 需要 API Key。")
+        payload = {
+            "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "contents": [{"role": "user", "parts": [{"text": user_prompt}]}],
+            "generationConfig": {"temperature": 0.2},
+        }
+        url = f"{config.base_url.rstrip('/')}/models/{config.model}:generateContent"
+        with httpx.Client(timeout=90) as client:
+            response = client.post(url, params={"key": config.api_key}, json=payload)
+            response.raise_for_status()
+            data = response.json()
+        candidates = data.get("candidates") or []
+        if not candidates:
+            return ""
+        parts = candidates[0].get("content", {}).get("parts") or []
+        return "".join(part.get("text", "") for part in parts).strip()
 
 
 def format_references(references: list[dict]) -> str:

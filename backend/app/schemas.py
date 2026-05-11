@@ -53,6 +53,7 @@ class FAQCreate(BaseModel):
     answer: str
     category: str = "其他"
     allow_auto_reply: bool = True
+    force: bool = False
 
 
 class FAQUpdate(BaseModel):
@@ -77,6 +78,7 @@ class FAQRead(BaseModel):
 
 class FAQImportResponse(BaseModel):
     imported: int
+    skipped_duplicates: int = 0
 
 
 class HistoryCreate(BaseModel):
@@ -151,6 +153,28 @@ class AIModelListResponse(BaseModel):
     source: str
 
 
+class AIProviderTestRequest(BaseModel):
+    provider_id: str
+    api_key: str | None = None
+    base_url: str | None = None
+    model: str | None = None
+
+
+class AIProviderTestResponse(BaseModel):
+    ok: bool
+    message: str
+    latency_ms: int
+    preview: str = ""
+
+
+class BackupImportResponse(BaseModel):
+    ok: bool
+    imported_faq: int = 0
+    skipped_faq_duplicates: int = 0
+    imported_knowledge_files: int = 0
+    imported_history: int = 0
+
+
 class UpdateCheckResponse(BaseModel):
     current_version: str
     latest_version: str
@@ -162,6 +186,9 @@ class UpdateCheckResponse(BaseModel):
     digest: str | None = None
     published_at: str | None = None
     body: str = ""
+    min_supported_version: str | None = None
+    force_update: bool = False
+    update_required_message: str | None = None
 
 
 class UpdateInstallResponse(BaseModel):

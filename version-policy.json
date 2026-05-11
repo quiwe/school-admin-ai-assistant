@@ -1,0 +1,4 @@
+{
+  "min_supported_version": "0.4.0",
+  "update_required_message": "当前版本已停止支持，请更新到最新版后继续使用。"
+}

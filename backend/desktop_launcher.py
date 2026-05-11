@@ -42,7 +42,7 @@ def find_free_port(start: int = 8765, attempts: int = 30) -> int:
 
 
 def configure_runtime(root: Path, port: int) -> None:
-    data_dir = root / "data"
+    data_dir = data_root(root)
     upload_dir = data_dir / "uploads"
     upload_dir.mkdir(parents=True, exist_ok=True)
 
@@ -54,6 +54,12 @@ def configure_runtime(root: Path, port: int) -> None:
     os.environ["UPLOAD_DIR"] = str(upload_dir)
     os.environ["CORS_ORIGINS"] = f"http://127.0.0.1:{port},http://localhost:{port}"
     os.chdir(root)
+
+
+def data_root(root: Path) -> Path:
+    if getattr(sys, "frozen", False) and sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "SchoolAdminAIAssistant" / "data"
+    return root / "data"
 
 
 def log_path(root: Path) -> Path:
@@ -104,7 +110,8 @@ def run_server(root: Path, port: int) -> None:
 
 def icon_path(root: Path) -> str | None:
     for candidate_root in resource_roots(root):
-        icon = candidate_root / "assets" / "app-icon.ico"
+        icon_name = "app-icon.png" if sys.platform == "darwin" else "app-icon.ico"
+        icon = candidate_root / "assets" / icon_name
         if icon.exists():
             return str(icon)
     return None
@@ -175,7 +182,10 @@ def main() -> None:
     write_log(root, f"Server ready: {server_ready}")
 
     open_desktop_window(root, port, server_ready)
-    webview.start(gui="edgechromium", debug=False, icon=icon_path(root))
+    if sys.platform == "win32":
+        webview.start(gui="edgechromium", debug=False, icon=icon_path(root))
+    else:
+        webview.start(debug=False, icon=icon_path(root))
 
 
 if __name__ == "__main__":

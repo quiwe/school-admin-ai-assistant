@@ -39,7 +39,15 @@ export default function FAQManager() {
         await api.updateFAQ(editing, payload);
         setMessage("已保存 FAQ 修改");
       } else {
-        await api.createFAQ(payload);
+        const similar = await api.similarFAQ(payload.question);
+        const force = similar.length
+          ? window.confirm(`发现相似 FAQ：${similar[0].question}\n\n仍要新增为独立 FAQ 吗？`)
+          : false;
+        if (similar.length && !force) {
+          setMessage("已取消新增，可编辑已有相似 FAQ");
+          return;
+        }
+        await api.createFAQ({ ...payload, force });
         setMessage("已新增 FAQ");
       }
       setForm(emptyForm);
@@ -83,7 +91,11 @@ export default function FAQManager() {
       const result = await api.importFAQ(formData);
       setFile(null);
       setFileInputKey((current) => current + 1);
-      setMessage(`已导入 ${result.imported} 条 FAQ`);
+      setMessage(
+        result.skipped_duplicates
+          ? `已导入 ${result.imported} 条 FAQ，跳过 ${result.skipped_duplicates} 条相似重复项`
+          : `已导入 ${result.imported} 条 FAQ`
+      );
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "导入 FAQ 失败");

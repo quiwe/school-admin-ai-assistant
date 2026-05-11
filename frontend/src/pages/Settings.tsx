@@ -1,7 +1,7 @@
-import { CheckCircle2, ExternalLink, KeyRound, ListFilter, Save } from "lucide-react";
+import { Activity, CheckCircle2, Download, ExternalLink, KeyRound, ListFilter, Save, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api, AIProviderConfig, AISettingsUpdate, AppInfo } from "../api/client";
-import { Input, Panel, PrimaryButton, Select } from "../components/ui";
+import { Button, Input, Panel, PrimaryButton, Select } from "../components/ui";
 
 type ProviderForm = {
   api_key: string;
@@ -20,6 +20,11 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
+  const [testingModel, setTestingModel] = useState(false);
+  const [backupFile, setBackupFile] = useState<File | null>(null);
+  const [backupInputKey, setBackupInputKey] = useState(0);
+  const [backupStatus, setBackupStatus] = useState("");
+  const [backupError, setBackupError] = useState("");
 
   useEffect(() => {
     loadSettings();
@@ -141,6 +146,63 @@ export default function SettingsPage() {
     }
   }
 
+  async function testModel() {
+    if (!activeProviderInfo) return;
+    setError("");
+    setSaved(false);
+    setTestingModel(true);
+    try {
+      const data = await api.testAIProvider({
+        provider_id: activeProviderInfo.id,
+        api_key: activeForm.api_key || undefined,
+        base_url: activeForm.base_url || undefined,
+        model: activeForm.model || undefined
+      });
+      setStatus(`${data.message}，耗时 ${data.latency_ms} ms${data.preview ? `：${data.preview}` : ""}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "模型测试失败");
+    } finally {
+      setTestingModel(false);
+    }
+  }
+
+  async function exportBackup() {
+    setBackupStatus("");
+    setBackupError("");
+    try {
+      const blob = await api.exportData();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `school-admin-ai-assistant-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setBackupStatus("已导出备份文件");
+    } catch (err) {
+      setBackupError(err instanceof Error ? err.message : "导出备份失败");
+    }
+  }
+
+  async function importBackup() {
+    if (!backupFile) return;
+    setBackupStatus("");
+    setBackupError("");
+    const formData = new FormData();
+    formData.append("file", backupFile);
+    try {
+      const result = await api.importData(formData);
+      setBackupFile(null);
+      setBackupInputKey((current) => current + 1);
+      setBackupStatus(
+        `已恢复：FAQ ${result.imported_faq} 条、知识库 ${result.imported_knowledge_files} 个、历史 ${result.imported_history} 条，跳过重复 FAQ ${result.skipped_faq_duplicates} 条`
+      );
+    } catch (err) {
+      setBackupError(err instanceof Error ? err.message : "导入备份失败");
+    }
+  }
+
   return (
     <div className="space-y-4">
       <Panel
@@ -194,7 +256,7 @@ export default function SettingsPage() {
                   )}
                 </div>
                 <p className="mt-1 text-xs text-slate-500">
-                  {activeProviderInfo.provider_type === "ollama_native" ? "Ollama 原生接口" : "OpenAI 兼容接口"}
+                  {providerTypeLabel(activeProviderInfo.provider_type)}
                   {!activeProviderInfo.requires_api_key ? "，可不填 Key" : ""}
                 </p>
               </div>
@@ -268,6 +330,10 @@ export default function SettingsPage() {
                   <ListFilter size={16} />
                   {loadingModels ? "识别中" : "识别模型"}
                 </PrimaryButton>
+                <Button onClick={testModel} disabled={testingModel || !activeForm.model.trim()}>
+                  <Activity size={16} />
+                  {testingModel ? "测试中" : "测试模型"}
+                </Button>
                 <PrimaryButton onClick={saveSettings} disabled={saving || !activeProviderInfo}>
                   <Save size={16} />
                   {saving ? "保存中" : "保存模型配置"}
@@ -293,6 +359,40 @@ export default function SettingsPage() {
         </div>
       </Panel>
 
+      <Panel
+        title="数据备份与恢复"
+        action={
+          <div className="text-xs">
+            {backupStatus && <span className="text-emerald-700">{backupStatus}</span>}
+            {backupError && <span className="text-red-600">{backupError}</span>}
+          </div>
+        }
+      >
+        <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
+          <Input
+            key={backupInputKey}
+            type="file"
+            accept=".json"
+            onChange={(event) => {
+              setBackupFile(event.target.files?.[0] || null);
+              setBackupStatus("");
+              setBackupError("");
+            }}
+          />
+          <Button onClick={exportBackup}>
+            <Download size={16} />
+            导出备份
+          </Button>
+          <PrimaryButton onClick={importBackup} disabled={!backupFile}>
+            <Upload size={16} />
+            导入备份
+          </PrimaryButton>
+        </div>
+        <p className="mt-2 text-xs leading-5 text-slate-500">
+          备份包含 FAQ、知识库解析文本、历史记录和非密钥设置；API Key 不会导出。导入时默认追加数据，并跳过相似 FAQ。
+        </p>
+      </Panel>
+
       <Panel title="版本信息">
         <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
           <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
@@ -315,4 +415,11 @@ export default function SettingsPage() {
       </Panel>
     </div>
   );
+}
+
+function providerTypeLabel(providerType: string) {
+  if (providerType === "ollama_native") return "Ollama 原生接口";
+  if (providerType === "anthropic_native") return "Anthropic 原生接口";
+  if (providerType === "gemini_native") return "Gemini 原生接口";
+  return "OpenAI 兼容接口";
 }

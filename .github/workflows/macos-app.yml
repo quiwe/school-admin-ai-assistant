@@ -1,0 +1,106 @@
+name: Build macOS App
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  macos-app:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load release metadata
+        shell: bash
+        run: |
+          version="$(tr -d '\r\n' < VERSION)"
+          developer="$(tr -d '\r\n' < DEVELOPER)"
+          tag="v${version}"
+          archive="SchoolAdminAIAssistant-macOS-v${version}.zip"
+          python3 - <<'PY'
+          import os, re, pathlib
+          version = pathlib.Path("VERSION").read_text(encoding="utf-8").strip()
+          developer = pathlib.Path("DEVELOPER").read_text(encoding="utf-8").strip()
+          changelog = pathlib.Path("CHANGELOG.md").read_text(encoding="utf-8")
+          match = re.search(rf"(?ms)^##\s+{re.escape(version)}\s+-.*?(?=^##\s+|\Z)", changelog)
+          notes = match.group(0).strip() if match else f"Version {version}\n\n{changelog}"
+          notes = f"{notes}\n\n开发者：{developer}\nmacOS 版本为未签名应用，首次打开可能需要在系统设置中允许。"
+          path = pathlib.Path(os.environ["RUNNER_TEMP"]) / "release-notes.md"
+          path.write_text(notes, encoding="utf-8")
+          print(f"RELEASE_NOTES_PATH={path}", file=open(os.environ["GITHUB_ENV"], "a", encoding="utf-8"))
+          PY
+          {
+            echo "APP_VERSION=${version}"
+            echo "APP_DEVELOPER=${developer}"
+            echo "RELEASE_TAG=${tag}"
+            echo "ARCHIVE_NAME=${archive}"
+            echo "ARCHIVE_PATH=dist/${archive}"
+          } >> "$GITHUB_ENV"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Copy frontend into FastAPI static directory
+        run: |
+          rm -rf backend/app/static
+          mkdir -p backend/app/static
+          cp -R frontend/dist/. backend/app/static/
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Create macOS icon
+        run: |
+          mkdir -p packaging/app-icon.iconset
+          for size in 16 32 128 256 512; do
+            sips -z "$size" "$size" assets/app-icon.png --out "packaging/app-icon.iconset/icon_${size}x${size}.png" >/dev/null
+            sips -z "$((size * 2))" "$((size * 2))" assets/app-icon.png --out "packaging/app-icon.iconset/icon_${size}x${size}@2x.png" >/dev/null
+          done
+          iconutil -c icns packaging/app-icon.iconset -o packaging/app-icon.icns
+
+      - name: Build macOS app
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt pyinstaller pyobjc
+          pyinstaller --noconfirm --clean packaging/pyinstaller-macos.spec
+          ditto -c -k --sequesterRsrc --keepParent "dist/高校行政AI回复助手.app" "$ARCHIVE_PATH"
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SchoolAdminAIAssistant-macOS-v${{ env.APP_VERSION }}
+          path: ${{ env.ARCHIVE_PATH }}
+
+      - name: Publish macOS asset to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="$RELEASE_TAG"
+          title="高校行政AI回复助手 $APP_VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f "$tag" "$GITHUB_SHA"
+          git push origin "refs/tags/$tag" --force
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" --title "$title" --notes-file "$RELEASE_NOTES_PATH" --latest
+          else
+            gh release create "$tag" --title "$title" --notes-file "$RELEASE_NOTES_PATH" --latest
+          fi
+          gh release upload "$tag" "$ARCHIVE_PATH" --clobber

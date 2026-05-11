@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 from .database import Base, engine
-from .routers import faq, history, knowledge, reply, settings as settings_router
+from .routers import data, faq, history, knowledge, reply, settings as settings_router
 from .schemas import UpdateCheckResponse, UpdateInstallResponse
 from .services.app_info import get_app_info
 from .services.updater import UpdateError, check_for_update, download_and_launch_update
@@ -27,6 +27,7 @@ app.include_router(knowledge.router)
 app.include_router(faq.router)
 app.include_router(history.router)
 app.include_router(settings_router.router)
+app.include_router(data.router)
 
 
 @app.get("/api/health")

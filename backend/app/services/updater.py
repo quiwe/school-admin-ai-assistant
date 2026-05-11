@@ -16,6 +16,7 @@ from .app_info import read_first_existing
 GITHUB_REPO_URL = "https://github.com/quiwe/school-admin-ai-assistant"
 GITHUB_LATEST_RELEASE_API_URL = "https://api.github.com/repos/quiwe/school-admin-ai-assistant/releases/latest"
 GITHUB_LATEST_RELEASE_PAGE_URL = f"{GITHUB_REPO_URL}/releases/latest"
+VERSION_POLICY_URL = "https://raw.githubusercontent.com/quiwe/school-admin-ai-assistant/main/version-policy.json"
 INSTALLER_PATTERN = re.compile(r"SchoolAdminAIAssistant-Setup-v?[\d.]+\.exe$", re.IGNORECASE)
 
 
@@ -35,6 +36,9 @@ class UpdateInfo:
     digest: str | None
     published_at: str | None
     body: str
+    min_supported_version: str | None = None
+    force_update: bool = False
+    update_required_message: str | None = None
 
 
 def current_version() -> str:
@@ -73,18 +77,19 @@ def updates_dir() -> Path:
 
 def check_for_update() -> UpdateInfo:
     local_version = current_version()
+    policy = fetch_version_policy()
     try:
         latest_version, release_url = fetch_latest_release_from_redirect()
     except Exception as redirect_exc:
         try:
             release = fetch_latest_release_from_api()
-            return update_info_from_release(release, local_version)
+            return apply_version_policy(update_info_from_release(release, local_version), policy)
         except Exception as api_exc:
             raise UpdateError(f"检查更新失败，请确认网络可以访问 GitHub：{redirect_exc}; {api_exc}") from api_exc
 
     has_update = bool(latest_version and is_newer_version(latest_version, local_version))
     if not has_update:
-        return UpdateInfo(
+        return apply_version_policy(UpdateInfo(
             current_version=local_version,
             latest_version=latest_version or local_version,
             has_update=False,
@@ -95,14 +100,14 @@ def check_for_update() -> UpdateInfo:
             digest=None,
             published_at=None,
             body="",
-        )
+        ), policy)
 
     try:
         release = fetch_latest_release_from_api()
-        return update_info_from_release(release, local_version)
+        return apply_version_policy(update_info_from_release(release, local_version), policy)
     except Exception:
         asset_name = installer_name(latest_version)
-        return UpdateInfo(
+        return apply_version_policy(UpdateInfo(
             current_version=local_version,
             latest_version=latest_version,
             has_update=True,
@@ -113,7 +118,31 @@ def check_for_update() -> UpdateInfo:
             digest=None,
             published_at=None,
             body="发现新版本。GitHub API 暂时不可用，仍可下载安装包更新。",
-        )
+        ), policy)
+
+
+def fetch_version_policy() -> dict:
+    try:
+        with httpx.Client(timeout=8, follow_redirects=True) as client:
+            response = client.get(VERSION_POLICY_URL, headers={"User-Agent": "SchoolAdminAIAssistant"})
+            response.raise_for_status()
+            data = response.json()
+            return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def apply_version_policy(info: UpdateInfo, policy: dict) -> UpdateInfo:
+    min_supported_version = normalize_version(str(policy.get("min_supported_version") or "").strip())
+    force_update = bool(min_supported_version and is_newer_version(min_supported_version, info.current_version))
+    info.min_supported_version = min_supported_version or None
+    info.force_update = force_update
+    info.update_required_message = str(policy.get("update_required_message") or "").strip() or None
+    if force_update:
+        info.has_update = True
+        if not info.update_required_message:
+            info.update_required_message = f"当前版本 {info.current_version} 已低于最低可用版本 {min_supported_version}，请更新后继续使用。"
+    return info
 
 
 def fetch_latest_release_from_redirect() -> tuple[str, str]:

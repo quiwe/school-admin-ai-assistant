@@ -6,10 +6,11 @@
 
 - 回复工作台：粘贴学生问题，生成回复，改写为更正式、更简短、更温和，一键复制。
 - 知识库管理：上传 PDF、DOC、DOCX、PPT、PPTX、TXT、XLS、XLSX，自动解析、切分 chunk、建立本地检索依据。
-- FAQ 管理：新增、编辑、删除、搜索 FAQ，并设置是否允许作为自动回复依据。
+- FAQ 管理：新增、编辑、删除、搜索、导入导出 FAQ，并设置是否允许作为自动回复依据；新增时会提示相似问题，批量导入会跳过重复项。
 - 历史记录：保存每次生成结果，支持搜索、分类筛选、复制、标记为常见问题。
-- 系统设置：在页面中配置常用大模型 API，包括 OpenAI、DeepSeek、通义千问、智谱 GLM、Kimi、豆包、硅基流动、MiniMax、小米 MiMo、OpenRouter、Ollama、LM Studio 和自定义 OpenAI 兼容接口。
-- 桌面更新：启动时检查 GitHub Release，新版本可在软件内下载并启动安装包。
+- 系统设置：在页面中配置和测试常用大模型 API，包括 OpenAI、Claude、Gemini、DeepSeek、通义千问、智谱 GLM、Kimi、豆包、腾讯混元、硅基流动、MiniMax、Mistral、Cohere、华为云盘古、小米 MiMo、OpenRouter、Ollama、LM Studio 和自定义 OpenAI 兼容接口。
+- 数据备份：支持导出和导入 FAQ、知识库解析文本、历史记录和非密钥设置，API Key 不会写入备份。
+- 桌面更新：启动时检查 GitHub Release，新版本可在软件内下载并启动安装包；0.3.0 起支持远程最低版本策略。
 - 安全控制：成绩、处分、奖助学金结果、学籍状态、个人隐私、投诉申诉、情绪危机等问题强制提示人工核实。
 
 ## 本地启动
@@ -144,13 +145,19 @@ API Key 不要写入代码或提交到仓库。
 AI 调用集中在 `backend/app/services/ai_provider.py` 和 `backend/app/services/runtime_config.py`。当前内置 Provider：
 
 - `openai`：OpenAI Chat Completions。
+- `anthropic`：Claude / Anthropic Messages API。
+- `gemini`：Google Gemini 原生 API。
 - `deepseek`：DeepSeek OpenAI 兼容接口。
 - `qwen`：通义千问 / 阿里百炼 OpenAI 兼容接口。
 - `zhipu`：智谱 GLM OpenAI 兼容接口。
 - `kimi`：Kimi / Moonshot OpenAI 兼容接口。
 - `doubao`：豆包 / 火山方舟 OpenAI 兼容接口。
+- `hunyuan`：腾讯混元 OpenAI 兼容接口。
 - `siliconflow`：硅基流动 OpenAI 兼容接口。
 - `minimax`：MiniMax OpenAI 兼容接口。
+- `mistral`：Mistral AI OpenAI 兼容接口。
+- `cohere`：Cohere OpenAI 兼容接口。
+- `pangu`：华为云盘古 / ModelArts OpenAI 格式接口。
 - `xiaomi`：小米 MiMo OpenAI 兼容接口。
 - `openrouter`：OpenRouter OpenAI 兼容接口。
 - `ollama`：Ollama 原生 `/api/chat`。

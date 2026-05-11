@@ -24,8 +24,6 @@ for package in [
     "openpyxl",
     "xlrd",
     "olefile",
-    "clr_loader",
-    "pythonnet",
 ]:
     hiddenimports += collect_submodules(package)
 
@@ -33,8 +31,7 @@ hiddenimports += [
     "webview",
     "webview.dom",
     "webview.guilib",
-    "webview.platforms.edgechromium",
-    "webview.platforms.winforms",
+    "webview.platforms.cocoa",
 ]
 
 datas = [
@@ -67,10 +64,11 @@ a = Analysis(
         "PySide6",
         "webview.platforms.android",
         "webview.platforms.cef",
-        "webview.platforms.cocoa",
         "webview.platforms.gtk",
         "webview.platforms.mshtml",
         "webview.platforms.qt",
+        "webview.platforms.winforms",
+        "webview.platforms.edgechromium",
     ],
     noarchive=False,
     optimize=0,
@@ -86,9 +84,8 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     console=False,
-    icon=str(PROJECT_ROOT / "assets" / "app-icon.ico"),
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -101,7 +98,19 @@ coll = COLLECT(
     a.binaries,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     name="SchoolAdminAIAssistant",
+)
+
+app = BUNDLE(
+    coll,
+    name="高校行政AI回复助手.app",
+    icon=str(PROJECT_ROOT / "packaging" / "app-icon.icns"),
+    bundle_identifier="com.quiwe.school-admin-ai-assistant",
+    info_plist={
+        "CFBundleDisplayName": "高校行政AI回复助手",
+        "CFBundleName": "高校行政AI回复助手",
+        "NSHighResolutionCapable": "True",
+    },
 )

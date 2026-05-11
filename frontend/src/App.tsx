@@ -99,6 +99,33 @@ export default function App() {
           </div>
         </section>
       )}
+      {updateInfo?.force_update && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-6">
+          <section className="w-full max-w-lg rounded-lg bg-white p-5 shadow-2xl">
+            <h2 className="text-base font-semibold text-slate-900">需要更新后继续使用</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              {updateInfo.update_required_message ||
+                `当前版本 ${updateInfo.current_version} 已低于最低可用版本 ${updateInfo.min_supported_version || updateInfo.latest_version}，请更新后继续使用。`}
+            </p>
+            <div className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-600">
+              当前版本：{updateInfo.current_version}
+              <br />
+              最新版本：{updateInfo.latest_version}
+            </div>
+            {updateMessage && <p className="mt-3 text-sm leading-6 text-amber-700">{updateMessage}</p>}
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <Button onClick={() => openReleasePage(updateInfo.release_url)}>
+                <ExternalLink size={16} />
+                打开发布页
+              </Button>
+              <PrimaryButton onClick={installUpdate} disabled={installingUpdate}>
+                <Download size={16} />
+                {installingUpdate ? "更新中" : "立即更新"}
+              </PrimaryButton>
+            </div>
+          </section>
+        </div>
+      )}
       <div className="mx-auto flex w-full max-w-[1760px] gap-4 px-4 py-5 sm:px-6 lg:gap-6 lg:px-8">
         <nav className="w-44 shrink-0 space-y-1 lg:w-48">
           {nav.map((item) => {

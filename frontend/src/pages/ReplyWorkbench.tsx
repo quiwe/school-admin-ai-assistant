@@ -69,11 +69,21 @@ export default function ReplyWorkbench() {
     setError("");
     setFAQMessage("");
     try {
+      const similar = await api.similarFAQ(question.trim());
+      const force = similar.length
+        ? window.confirm(`发现相似 FAQ：${similar[0].question}\n\n仍要新增为独立 FAQ 吗？`)
+        : false;
+      if (similar.length && !force) {
+        setFAQMessage("已取消保存，可到 FAQ 管理合并相似问题");
+        setTimeout(() => setFAQMessage(""), 2200);
+        return;
+      }
       await api.createFAQ({
         question: question.trim(),
         answer: answer.trim(),
         category: meta?.category || "其他",
-        allow_auto_reply: true
+        allow_auto_reply: true,
+        force
       });
       setFAQMessage("已保存到 FAQ 管理");
       setTimeout(() => setFAQMessage(""), 1800);
