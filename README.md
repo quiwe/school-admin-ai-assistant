@@ -78,6 +78,23 @@ D:\SchoolAdminAIAssistant
 https://developer.microsoft.com/microsoft-edge/webview2/
 ```
 
+## macOS DMG 在线打包
+
+仓库内置 GitHub Actions：`.github/workflows/macos-app.yml`。
+
+触发方式：
+
+- 确认发布时在 GitHub 仓库页面进入 `Actions`，手动运行 `Build macOS App`。
+- 打包任务会读取 `VERSION`、`DEVELOPER` 和 `CHANGELOG.md`，并创建或更新对应版本的 GitHub Release。
+
+打包产物：
+
+- Artifact 名称：`SchoolAdminAIAssistant-macOS-v版本号`
+- DMG 文件：`SchoolAdminAIAssistant-macOS-v版本号.dmg`
+- GitHub Release：把 `.dmg` 上传到 `v版本号` Release 附件。
+
+macOS 版本暂未签名，首次打开可能需要在系统设置中允许。
+
 ## 版本发布规范
 
 每次更新前维护三个文件：

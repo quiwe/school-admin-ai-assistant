@@ -20,7 +20,7 @@ jobs:
           version="$(tr -d '\r\n' < VERSION)"
           developer="$(tr -d '\r\n' < DEVELOPER)"
           tag="v${version}"
-          archive="SchoolAdminAIAssistant-macOS-v${version}.zip"
+          archive="SchoolAdminAIAssistant-macOS-v${version}.dmg"
           python3 - <<'PY'
           import os, re, pathlib
           version = pathlib.Path("VERSION").read_text(encoding="utf-8").strip()
@@ -28,7 +28,7 @@ jobs:
           changelog = pathlib.Path("CHANGELOG.md").read_text(encoding="utf-8")
           match = re.search(rf"(?ms)^##\s+{re.escape(version)}\s+-.*?(?=^##\s+|\Z)", changelog)
           notes = match.group(0).strip() if match else f"Version {version}\n\n{changelog}"
-          notes = f"{notes}\n\n开发者：{developer}\nmacOS 版本为未签名应用，首次打开可能需要在系统设置中允许。"
+          notes = f"{notes}\n\n开发者：{developer}\nmacOS 版本为未签名 DMG，首次打开可能需要在系统设置中允许。"
           path = pathlib.Path(os.environ["RUNNER_TEMP"]) / "release-notes.md"
           path.write_text(notes, encoding="utf-8")
           print(f"RELEASE_NOTES_PATH={path}", file=open(os.environ["GITHUB_ENV"], "a", encoding="utf-8"))
@@ -80,7 +80,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt pyinstaller pyobjc
           pyinstaller --noconfirm --clean packaging/pyinstaller-macos.spec
-          ditto -c -k --sequesterRsrc --keepParent "dist/高校行政AI回复助手.app" "$ARCHIVE_PATH"
+          dmg_staging="$RUNNER_TEMP/dmg-staging"
+          rm -rf "$dmg_staging" "$ARCHIVE_PATH"
+          mkdir -p "$dmg_staging"
+          cp -R "dist/高校行政AI回复助手.app" "$dmg_staging/"
+          ln -s /Applications "$dmg_staging/Applications"
+          hdiutil create \
+            -volname "高校行政AI回复助手" \
+            -srcfolder "$dmg_staging" \
+            -ov \
+            -fs HFS+ \
+            -format UDZO \
+            "$ARCHIVE_PATH"
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
@@ -103,4 +114,5 @@ jobs:
           else
             gh release create "$tag" --title "$title" --notes-file "$RELEASE_NOTES_PATH" --latest
           fi
+          gh release delete-asset "$tag" "SchoolAdminAIAssistant-macOS-v${APP_VERSION}.zip" -y >/dev/null 2>&1 || true
           gh release upload "$tag" "$ARCHIVE_PATH" --clobber
