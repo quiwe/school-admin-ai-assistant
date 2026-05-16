@@ -95,6 +95,25 @@ https://developer.microsoft.com/microsoft-edge/webview2/
 
 macOS 版本暂未签名，首次打开可能需要在系统设置中允许。
 
+## 国内更新源
+
+软件会优先尝试从 Gitee Release 检查和下载安装包，Gitee 不可用时自动回退 GitHub Release。
+
+默认 Gitee 仓库地址：
+
+```text
+https://gitee.com/quiwe/school-admin-ai-assistant
+```
+
+如需使用其他 Gitee 仓库，可在运行环境中配置：
+
+```env
+GITEE_OWNER=你的 Gitee 空间
+GITEE_REPO=school-admin-ai-assistant
+GITEE_REPO_URL=https://gitee.com/你的 Gitee 空间/school-admin-ai-assistant
+GITEE_ACCESS_TOKEN=私有仓库访问令牌
+```
+
 ## 版本发布规范
 
 每次更新前维护三个文件：

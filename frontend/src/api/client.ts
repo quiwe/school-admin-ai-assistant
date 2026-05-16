@@ -143,6 +143,7 @@ export type UpdateCheckResponse = {
   min_supported_version?: string | null;
   force_update: boolean;
   update_required_message?: string | null;
+  update_source?: string | null;
 };
 
 export type UpdateInstallResponse = {

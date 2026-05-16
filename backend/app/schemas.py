@@ -200,6 +200,7 @@ class UpdateCheckResponse(BaseModel):
     min_supported_version: str | None = None
     force_update: bool = False
     update_required_message: str | None = None
+    update_source: str | None = None
 
 
 class UpdateProgressResponse(BaseModel):

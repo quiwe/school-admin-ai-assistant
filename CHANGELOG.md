@@ -1,5 +1,14 @@
 # 更新日志
 
+## 0.5.3 - 2026-05-17
+
+开发者：maoqiu
+
+- 自动更新新增 Gitee 国内源优先检测，Gitee 不可用时自动回退 GitHub。
+- 更新信息支持显示当前更新源，方便区分国内源和 GitHub 源。
+- Gitee Release 支持按当前系统识别 Windows `.exe` 或 macOS `.dmg` 安装包。
+- Gitee 源支持通过环境变量配置仓库地址、Owner、仓库名和访问令牌。
+
 ## 0.5.2 - 2026-05-17
 
 开发者：maoqiu

@@ -182,6 +182,9 @@ function DesktopApp() {
               <div className="font-semibold">
                 发现新版本 {updateInfo.latest_version}
                 <span className="ml-2 font-normal text-amber-700">当前版本 {updateInfo.current_version}</span>
+                {updateInfo.update_source ? (
+                  <span className="ml-2 font-normal text-amber-700">更新源：{updateSourceLabel(updateInfo.update_source)}</span>
+                ) : null}
               </div>
               <div className="mt-1 line-clamp-2 text-xs leading-5 text-amber-800">
                 {updateMessage || updateInfo.body || "建议更新到最新版本以获得修复和新功能。"}
@@ -279,6 +282,12 @@ function formatBytes(bytes: number) {
     return `${Math.round(bytes / 1024)} KB`;
   }
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function updateSourceLabel(source: string) {
+  if (source === "gitee") return "Gitee 国内源";
+  if (source === "github") return "GitHub";
+  return source;
 }
 
 function UpdateProgressView({ progress }: { progress: UpdateProgressResponse | null }) {

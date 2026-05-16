@@ -14,6 +14,18 @@ import httpx
 from .app_info import read_first_existing
 
 
+GITEE_OWNER = os.environ.get("GITEE_OWNER", "quiwe")
+GITEE_REPO = os.environ.get("GITEE_REPO", "school-admin-ai-assistant")
+GITEE_ACCESS_TOKEN = os.environ.get("GITEE_ACCESS_TOKEN")
+GITEE_REPO_URL = os.environ.get("GITEE_REPO_URL", f"https://gitee.com/{GITEE_OWNER}/{GITEE_REPO}")
+GITEE_LATEST_RELEASE_API_URL = os.environ.get(
+    "GITEE_LATEST_RELEASE_API_URL",
+    f"https://gitee.com/api/v5/repos/{GITEE_OWNER}/{GITEE_REPO}/releases/latest",
+)
+GITEE_VERSION_POLICY_URL = os.environ.get(
+    "GITEE_VERSION_POLICY_URL",
+    f"{GITEE_REPO_URL}/raw/main/version-policy.json",
+)
 GITHUB_REPO_URL = "https://github.com/quiwe/school-admin-ai-assistant"
 GITHUB_LATEST_RELEASE_API_URL = "https://api.github.com/repos/quiwe/school-admin-ai-assistant/releases/latest"
 GITHUB_LATEST_RELEASE_PAGE_URL = f"{GITHUB_REPO_URL}/releases/latest"
@@ -41,6 +53,7 @@ class UpdateInfo:
     min_supported_version: str | None = None
     force_update: bool = False
     update_required_message: str | None = None
+    update_source: str | None = None
 
 
 @dataclass
@@ -120,18 +133,32 @@ def updates_dir() -> Path:
 def check_for_update() -> UpdateInfo:
     local_version = current_version()
     policy = fetch_version_policy()
+    errors: list[str] = []
+    try:
+        return apply_version_policy(fetch_gitee_update_info(local_version), policy)
+    except Exception as exc:
+        errors.append(f"Gitee：{exc}")
+
+    try:
+        return apply_version_policy(fetch_github_update_info(local_version), policy)
+    except Exception as exc:
+        errors.append(f"GitHub：{exc}")
+        raise UpdateError(f"检查更新失败：{'; '.join(errors)}") from exc
+
+
+def fetch_github_update_info(local_version: str) -> UpdateInfo:
     try:
         latest_version, release_url = fetch_latest_release_from_redirect()
     except Exception as redirect_exc:
         try:
             release = fetch_latest_release_from_api()
-            return apply_version_policy(update_info_from_release(release, local_version), policy)
+            return update_info_from_github_release(release, local_version)
         except Exception as api_exc:
             raise UpdateError(f"检查更新失败，请确认网络可以访问 GitHub：{redirect_exc}; {api_exc}") from api_exc
 
     has_update = bool(latest_version and is_newer_version(latest_version, local_version))
     if not has_update:
-        return apply_version_policy(UpdateInfo(
+        return UpdateInfo(
             current_version=local_version,
             latest_version=latest_version or local_version,
             has_update=False,
@@ -142,14 +169,15 @@ def check_for_update() -> UpdateInfo:
             digest=None,
             published_at=None,
             body="",
-        ), policy)
+            update_source="github",
+        )
 
     try:
         release = fetch_latest_release_from_api()
-        return apply_version_policy(update_info_from_release(release, local_version), policy)
+        return update_info_from_github_release(release, local_version)
     except Exception:
         asset_name = installer_name(latest_version)
-        return apply_version_policy(UpdateInfo(
+        return UpdateInfo(
             current_version=local_version,
             latest_version=latest_version,
             has_update=True,
@@ -160,18 +188,81 @@ def check_for_update() -> UpdateInfo:
             digest=None,
             published_at=None,
             body="发现新版本。GitHub API 暂时不可用，仍可下载安装包更新。",
-        ), policy)
+            update_source="github",
+        )
 
 
 def fetch_version_policy() -> dict:
+    for url in [GITEE_VERSION_POLICY_URL, VERSION_POLICY_URL]:
+        try:
+            with httpx.Client(timeout=8, follow_redirects=True) as client:
+                response = client.get(url, headers={"User-Agent": "SchoolAdminAIAssistant"})
+                response.raise_for_status()
+                data = response.json()
+                return data if isinstance(data, dict) else {}
+        except Exception:
+            continue
+    return {}
+
+
+def gitee_params() -> dict[str, str]:
+    return {"access_token": GITEE_ACCESS_TOKEN} if GITEE_ACCESS_TOKEN else {}
+
+
+def fetch_gitee_release_from_api() -> dict:
+    with httpx.Client(timeout=12, follow_redirects=True) as client:
+        response = client.get(
+            GITEE_LATEST_RELEASE_API_URL,
+            params=gitee_params(),
+            headers={"Accept": "application/json", "User-Agent": "SchoolAdminAIAssistant"},
+        )
+        response.raise_for_status()
+        return response.json()
+
+
+def fetch_gitee_attach_files(release: dict) -> list[dict]:
+    release_id = release.get("id")
+    if not release_id:
+        return []
+    url = f"https://gitee.com/api/v5/repos/{GITEE_OWNER}/{GITEE_REPO}/releases/{release_id}/attach_files"
     try:
-        with httpx.Client(timeout=8, follow_redirects=True) as client:
-            response = client.get(VERSION_POLICY_URL, headers={"User-Agent": "SchoolAdminAIAssistant"})
+        with httpx.Client(timeout=12, follow_redirects=True) as client:
+            response = client.get(url, params=gitee_params(), headers={"User-Agent": "SchoolAdminAIAssistant"})
             response.raise_for_status()
             data = response.json()
-            return data if isinstance(data, dict) else {}
+            return data if isinstance(data, list) else []
     except Exception:
-        return {}
+        return []
+
+
+def fetch_gitee_update_info(local_version: str) -> UpdateInfo:
+    release = fetch_gitee_release_from_api()
+    latest_version = normalize_version(release.get("tag_name") or release.get("name") or "")
+    if not latest_version:
+        raise UpdateError("无法从 Gitee Release 识别最新版本号。")
+    tag = release.get("tag_name") or f"v{latest_version}"
+    release_url = release.get("html_url") or f"{GITEE_REPO_URL}/releases/tag/{tag}"
+    assets = normalize_release_assets(release)
+    if not assets:
+        assets = fetch_gitee_attach_files(release)
+    asset = find_installer_asset(assets, latest_version)
+    asset_name = get_asset_name(asset) if asset else installer_name(latest_version)
+    download_url = get_asset_download_url(asset) if asset else None
+    if not download_url and asset_name:
+        download_url = f"{GITEE_REPO_URL}/releases/download/{tag}/{asset_name}"
+    return UpdateInfo(
+        current_version=local_version,
+        latest_version=latest_version,
+        has_update=is_newer_version(latest_version, local_version),
+        release_url=release_url,
+        asset_name=asset_name,
+        download_url=download_url,
+        asset_size=get_asset_size(asset),
+        digest=get_asset_digest(asset),
+        published_at=release.get("published_at") or release.get("created_at"),
+        body=(release.get("body") or release.get("description") or "").strip(),
+        update_source="gitee",
+    )
 
 
 def apply_version_policy(info: UpdateInfo, policy: dict) -> UpdateInfo:
@@ -208,21 +299,64 @@ def fetch_latest_release_from_api() -> dict:
         return response.json()
 
 
-def update_info_from_release(release: dict, local_version: str) -> UpdateInfo:
+def update_info_from_github_release(release: dict, local_version: str) -> UpdateInfo:
     latest_version = normalize_version(release.get("tag_name") or release.get("name") or "")
-    asset = find_installer_asset(release.get("assets") or [], latest_version)
+    asset = find_installer_asset(normalize_release_assets(release), latest_version)
     return UpdateInfo(
         current_version=local_version,
         latest_version=latest_version or local_version,
         has_update=bool(latest_version and is_newer_version(latest_version, local_version)),
         release_url=release.get("html_url") or "",
-        asset_name=asset.get("name") if asset else None,
-        download_url=asset.get("browser_download_url") if asset else None,
-        asset_size=asset.get("size") if asset else None,
-        digest=asset.get("digest") if asset else None,
+        asset_name=get_asset_name(asset),
+        download_url=get_asset_download_url(asset),
+        asset_size=get_asset_size(asset),
+        digest=get_asset_digest(asset),
         published_at=release.get("published_at"),
         body=(release.get("body") or "").strip(),
+        update_source="github",
     )
+
+
+def normalize_release_assets(release: dict) -> list[dict]:
+    assets = release.get("assets") or release.get("attach_files") or release.get("attachments") or []
+    return assets if isinstance(assets, list) else []
+
+
+def get_asset_name(asset: dict | None) -> str | None:
+    if not asset:
+        return None
+    return asset.get("name") or asset.get("filename") or asset.get("file_name") or asset.get("fileName")
+
+
+def get_asset_download_url(asset: dict | None) -> str | None:
+    if not asset:
+        return None
+    return (
+        asset.get("browser_download_url")
+        or asset.get("download_url")
+        or asset.get("downloadUrl")
+        or asset.get("download_href")
+        or asset.get("url")
+    )
+
+
+def get_asset_size(asset: dict | None) -> int | None:
+    if not asset:
+        return None
+    value = asset.get("size") or asset.get("file_size") or asset.get("fileSize")
+    try:
+        return int(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def get_asset_digest(asset: dict | None) -> str | None:
+    if not asset:
+        return None
+    value = asset.get("digest") or asset.get("sha256")
+    if value and not str(value).startswith("sha256:") and re.fullmatch(r"[a-fA-F0-9]{64}", str(value)):
+        return f"sha256:{value}"
+    return value
 
 
 def installer_name(version: str) -> str:
@@ -236,14 +370,14 @@ def find_installer_asset(assets: list[dict], latest_version: str) -> dict | None
     pattern = MACOS_INSTALLER_PATTERN if sys.platform == "darwin" else WINDOWS_INSTALLER_PATTERN
     extension = ".dmg" if sys.platform == "darwin" else ".exe"
     for asset in assets:
-        if asset.get("name") == expected_name:
+        if get_asset_name(asset) == expected_name:
             return asset
     for asset in assets:
-        name = asset.get("name") or ""
+        name = get_asset_name(asset) or ""
         if pattern.search(name):
             return asset
     for asset in assets:
-        name = asset.get("name") or ""
+        name = get_asset_name(asset) or ""
         if name.lower().endswith(extension):
             return asset
     return None
