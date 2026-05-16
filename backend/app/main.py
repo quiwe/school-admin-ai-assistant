@@ -6,9 +6,9 @@ from pathlib import Path
 
 from .database import Base, engine
 from .routers import data, faq, history, knowledge, reply, settings as settings_router
-from .schemas import UpdateCheckResponse, UpdateInstallResponse
+from .schemas import UpdateCheckResponse, UpdateInstallResponse, UpdateProgressResponse
 from .services.app_info import get_app_info
-from .services.updater import UpdateError, check_for_update, download_and_launch_update
+from .services.updater import UpdateError, check_for_update, get_update_progress, start_download_and_launch_update
 from .settings import settings
 
 Base.metadata.create_all(bind=engine)
@@ -52,14 +52,19 @@ def update_check():
 @app.post("/api/app/update/install", response_model=UpdateInstallResponse)
 def update_install():
     try:
-        installer = download_and_launch_update()
+        start_download_and_launch_update()
     except UpdateError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {
         "ok": True,
-        "message": "安装程序已启动，请按提示完成更新。桌面端会自动关闭。",
-        "installer_path": str(installer),
+        "message": "已开始下载安装包，请留意下载进度。",
+        "installer_path": None,
     }
+
+
+@app.get("/api/app/update/progress", response_model=UpdateProgressResponse)
+def update_progress():
+    return get_update_progress()
 
 
 static_dir = Path(__file__).resolve().parent / "static"

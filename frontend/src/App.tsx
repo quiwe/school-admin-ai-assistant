@@ -1,6 +1,6 @@
-import { BookOpen, ClipboardList, Download, ExternalLink, History, MessageSquareText, Settings, X } from "lucide-react";
+import { BookOpen, Check, ClipboardList, Copy, Download, ExternalLink, History, MessageSquareText, Settings, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { api, UpdateCheckResponse } from "./api/client";
+import { api, UpdateCheckResponse, UpdateProgressResponse } from "./api/client";
 import { Button, PrimaryButton } from "./components/ui";
 import FAQManager from "./pages/FAQManager";
 import HistoryPage from "./pages/History";
@@ -31,6 +31,9 @@ function DesktopApp() {
   const [updateDismissed, setUpdateDismissed] = useState(false);
   const [installingUpdate, setInstallingUpdate] = useState(false);
   const [updateMessage, setUpdateMessage] = useState("");
+  const [updateProgress, setUpdateProgress] = useState<UpdateProgressResponse | null>(null);
+  const [webClientDialogOpen, setWebClientDialogOpen] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
   const studentChatUrl = `${window.location.origin}/student-chat`;
 
   useEffect(() => {
@@ -49,15 +52,63 @@ function DesktopApp() {
       return;
     }
     setInstallingUpdate(true);
-    setUpdateMessage("正在下载安装包，请稍候...");
+    setUpdateMessage("正在准备下载...");
+    setUpdateProgress({
+      status: "checking",
+      phase: "checking",
+      message: "正在准备下载...",
+      bytes_downloaded: 0,
+      bytes_total: updateInfo.asset_size,
+      percent: 0,
+      latest_version: updateInfo.latest_version,
+      asset_name: updateInfo.asset_name
+    });
     try {
       const result = await api.installUpdate();
       setUpdateMessage(result.message);
+      await pollUpdateProgress();
     } catch (err) {
       setUpdateMessage(err instanceof Error ? err.message : "自动更新失败，请打开发布页手动下载。");
-    } finally {
       setInstallingUpdate(false);
     }
+  }
+
+  async function pollUpdateProgress() {
+    for (let index = 0; index < 180; index += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      try {
+        const progress = await api.getUpdateProgress();
+        setUpdateProgress(progress);
+        setUpdateMessage(progress.error ? `${progress.message}：${progress.error}` : progress.message);
+        if (progress.status === "completed" || progress.status === "error") {
+          setInstallingUpdate(false);
+          return;
+        }
+      } catch (err) {
+        setUpdateMessage(err instanceof Error ? err.message : "读取下载进度失败。");
+        setInstallingUpdate(false);
+        return;
+      }
+    }
+    setUpdateMessage("下载仍在进行，请稍候。");
+  }
+
+  async function copyStudentChatUrl() {
+    try {
+      await navigator.clipboard.writeText(studentChatUrl);
+    } catch {
+      const input = document.createElement("textarea");
+      input.value = studentChatUrl;
+      input.setAttribute("readonly", "true");
+      input.style.position = "fixed";
+      input.style.opacity = "0";
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      input.remove();
+    }
+    setCopiedUrl(true);
+    setTimeout(() => setCopiedUrl(false), 1400);
   }
 
   function openReleasePage(url?: string) {
@@ -79,7 +130,7 @@ function DesktopApp() {
               <span className="shrink-0 text-slate-500">网页端地址</span>
               <code className="truncate font-mono text-slate-800">{studentChatUrl}</code>
             </div>
-            <Button onClick={() => window.open(studentChatUrl, "_blank", "noopener,noreferrer")}>
+            <Button onClick={() => setWebClientDialogOpen(true)}>
               <ExternalLink size={16} />
               打开网页端
             </Button>
@@ -87,6 +138,36 @@ function DesktopApp() {
           </div>
         </div>
       </header>
+      {webClientDialogOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/45 p-6">
+          <section className="w-full max-w-xl rounded-lg bg-white p-5 shadow-2xl">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-base font-semibold text-slate-900">网页端地址</h2>
+              <button
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
+                onClick={() => setWebClientDialogOpen(false)}
+                title="关闭"
+                aria-label="关闭"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
+              <code className="block break-all font-mono text-sm leading-6 text-slate-800">{studentChatUrl}</code>
+            </div>
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <Button onClick={copyStudentChatUrl}>
+                {copiedUrl ? <Check size={16} /> : <Copy size={16} />}
+                {copiedUrl ? "已复制" : "复制地址"}
+              </Button>
+              <PrimaryButton onClick={() => window.location.assign(studentChatUrl)}>
+                <ExternalLink size={16} />
+                进入网页端
+              </PrimaryButton>
+            </div>
+          </section>
+        </div>
+      )}
       {updateInfo?.has_update && !updateDismissed && (
         <section className="border-b border-amber-200 bg-amber-50">
           <div className="mx-auto flex w-full max-w-[1760px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
@@ -101,6 +182,7 @@ function DesktopApp() {
               {updateInfo.asset_size ? (
                 <div className="mt-1 text-xs text-amber-700">安装包大小：{formatBytes(updateInfo.asset_size)}</div>
               ) : null}
+              <UpdateProgressView progress={updateProgress} />
             </div>
             <div className="flex shrink-0 flex-wrap items-center gap-2">
               <PrimaryButton onClick={installUpdate} disabled={installingUpdate}>
@@ -133,6 +215,7 @@ function DesktopApp() {
               最新版本：{updateInfo.latest_version}
             </div>
             {updateMessage && <p className="mt-3 text-sm leading-6 text-amber-700">{updateMessage}</p>}
+            <UpdateProgressView progress={updateProgress} />
             <div className="mt-5 flex flex-wrap justify-end gap-2">
               <Button onClick={() => openReleasePage(updateInfo.release_url)}>
                 <ExternalLink size={16} />
@@ -189,4 +272,35 @@ function formatBytes(bytes: number) {
     return `${Math.round(bytes / 1024)} KB`;
   }
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function UpdateProgressView({ progress }: { progress: UpdateProgressResponse | null }) {
+  if (!progress || progress.status === "idle") return null;
+
+  const percent = Math.max(0, Math.min(100, progress.percent || 0));
+  const hasTotal = Boolean(progress.bytes_total);
+  const isError = progress.status === "error";
+  const isComplete = progress.status === "completed" || progress.status === "launching";
+
+  return (
+    <div className="mt-3 max-w-xl rounded-md border border-amber-200 bg-white/70 p-3">
+      <div className="flex items-center justify-between gap-3 text-xs">
+        <span className={isError ? "text-red-700" : "text-amber-900"}>
+          {progress.message || "正在处理更新..."}
+        </span>
+        <span className="shrink-0 font-medium text-amber-900">{hasTotal || isComplete ? `${percent.toFixed(1)}%` : "准备中"}</span>
+      </div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-amber-100">
+        <div
+          className={`h-full rounded-full transition-all ${isError ? "bg-red-500" : "bg-blue-600"}`}
+          style={{ width: `${hasTotal || isComplete ? percent : 12}%` }}
+        />
+      </div>
+      {hasTotal ? (
+        <div className="mt-2 text-xs text-amber-800">
+          已下载 {formatBytes(progress.bytes_downloaded)} / {formatBytes(progress.bytes_total || 0)}
+        </div>
+      ) : null}
+    </div>
+  );
 }

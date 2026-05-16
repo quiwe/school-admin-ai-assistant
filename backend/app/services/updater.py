@@ -7,6 +7,7 @@ import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 import httpx
 
@@ -39,6 +40,46 @@ class UpdateInfo:
     min_supported_version: str | None = None
     force_update: bool = False
     update_required_message: str | None = None
+
+
+@dataclass
+class UpdateProgress:
+    status: str = "idle"
+    phase: str = "idle"
+    message: str = ""
+    bytes_downloaded: int = 0
+    bytes_total: int | None = None
+    percent: float = 0.0
+    latest_version: str | None = None
+    asset_name: str | None = None
+    installer_path: str | None = None
+    error: str | None = None
+
+
+_progress_lock = threading.Lock()
+_progress = UpdateProgress()
+
+
+def set_update_progress(**kwargs) -> None:
+    with _progress_lock:
+        for key, value in kwargs.items():
+            setattr(_progress, key, value)
+
+
+def get_update_progress() -> dict:
+    with _progress_lock:
+        return {
+            "status": _progress.status,
+            "phase": _progress.phase,
+            "message": _progress.message,
+            "bytes_downloaded": _progress.bytes_downloaded,
+            "bytes_total": _progress.bytes_total,
+            "percent": _progress.percent,
+            "latest_version": _progress.latest_version,
+            "asset_name": _progress.asset_name,
+            "installer_path": _progress.installer_path,
+            "error": _progress.error,
+        }
 
 
 def current_version() -> str:
@@ -203,7 +244,7 @@ def find_installer_asset(assets: list[dict], latest_version: str) -> dict | None
     return None
 
 
-def download_installer(info: UpdateInfo) -> Path:
+def download_installer(info: UpdateInfo, progress_callback: Callable[[int, int | None], None] | None = None) -> Path:
     if not info.download_url or not info.asset_name:
         raise UpdateError("最新 Release 中没有找到 Windows 安装包。")
 
@@ -214,10 +255,20 @@ def download_installer(info: UpdateInfo) -> Path:
         with httpx.Client(timeout=None, follow_redirects=True) as client:
             with client.stream("GET", info.download_url, headers={"User-Agent": "SchoolAdminAIAssistant"}) as response:
                 response.raise_for_status()
+                bytes_downloaded = 0
+                bytes_total = info.asset_size
+                if not bytes_total:
+                    content_length = response.headers.get("content-length")
+                    bytes_total = int(content_length) if content_length and content_length.isdigit() else None
+                if progress_callback:
+                    progress_callback(bytes_downloaded, bytes_total)
                 with temp_target.open("wb") as file:
-                    for chunk in response.iter_bytes():
+                    for chunk in response.iter_bytes(chunk_size=1024 * 512):
                         if chunk:
                             file.write(chunk)
+                            bytes_downloaded += len(chunk)
+                            if progress_callback:
+                                progress_callback(bytes_downloaded, bytes_total)
         temp_target.replace(target)
     except Exception as exc:
         if temp_target.exists():
@@ -249,6 +300,89 @@ def download_and_launch_update() -> Path:
     installer = download_installer(info)
     launch_installer(installer)
     return installer
+
+
+def start_download_and_launch_update() -> None:
+    progress = get_update_progress()
+    if progress["status"] in {"checking", "downloading", "launching"}:
+        return
+
+    set_update_progress(
+        status="checking",
+        phase="checking",
+        message="正在检查新版本...",
+        bytes_downloaded=0,
+        bytes_total=None,
+        percent=0.0,
+        latest_version=None,
+        asset_name=None,
+        installer_path=None,
+        error=None,
+    )
+    threading.Thread(target=download_and_launch_update_in_background, daemon=True).start()
+
+
+def download_and_launch_update_in_background() -> None:
+    try:
+        info = check_for_update()
+        if not info.has_update:
+            set_update_progress(
+                status="completed",
+                phase="completed",
+                message="当前已经是最新版本。",
+                percent=100.0,
+                latest_version=info.latest_version,
+                asset_name=info.asset_name,
+            )
+            return
+
+        set_update_progress(
+            status="downloading",
+            phase="downloading",
+            message="正在下载安装包...",
+            bytes_downloaded=0,
+            bytes_total=info.asset_size,
+            percent=0.0,
+            latest_version=info.latest_version,
+            asset_name=info.asset_name,
+        )
+
+        def update_download_progress(bytes_downloaded: int, bytes_total: int | None) -> None:
+            percent = round(bytes_downloaded / bytes_total * 100, 1) if bytes_total else 0.0
+            set_update_progress(
+                status="downloading",
+                phase="downloading",
+                message=f"正在下载安装包... {percent:.1f}%" if bytes_total else "正在下载安装包...",
+                bytes_downloaded=bytes_downloaded,
+                bytes_total=bytes_total,
+                percent=percent,
+            )
+
+        installer = download_installer(info, update_download_progress)
+        set_update_progress(
+            status="launching",
+            phase="launching",
+            message="下载完成，正在启动安装程序...",
+            bytes_downloaded=installer.stat().st_size,
+            bytes_total=info.asset_size or installer.stat().st_size,
+            percent=100.0,
+            installer_path=str(installer),
+        )
+        launch_installer(installer)
+        set_update_progress(
+            status="completed",
+            phase="completed",
+            message="安装程序已启动，请按提示完成更新。",
+            percent=100.0,
+            installer_path=str(installer),
+        )
+    except Exception as exc:
+        set_update_progress(
+            status="error",
+            phase="error",
+            message="自动更新失败，请打开发布页手动下载。",
+            error=str(exc)[:500],
+        )
 
 
 def launch_installer(installer: Path) -> None:

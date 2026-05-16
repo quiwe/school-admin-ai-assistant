@@ -191,6 +191,19 @@ class UpdateCheckResponse(BaseModel):
     update_required_message: str | None = None
 
 
+class UpdateProgressResponse(BaseModel):
+    status: str = "idle"
+    phase: str = "idle"
+    message: str = ""
+    bytes_downloaded: int = 0
+    bytes_total: int | None = None
+    percent: float = 0.0
+    latest_version: str | None = None
+    asset_name: str | None = None
+    installer_path: str | None = None
+    error: str | None = None
+
+
 class UpdateInstallResponse(BaseModel):
     ok: bool
     message: str

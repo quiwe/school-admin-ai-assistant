@@ -151,6 +151,19 @@ export type UpdateInstallResponse = {
   installer_path?: string | null;
 };
 
+export type UpdateProgressResponse = {
+  status: "idle" | "checking" | "downloading" | "launching" | "completed" | "error";
+  phase: string;
+  message: string;
+  bytes_downloaded: number;
+  bytes_total?: number | null;
+  percent: number;
+  latest_version?: string | null;
+  asset_name?: string | null;
+  installer_path?: string | null;
+  error?: string | null;
+};
+
 export type DeleteResponse = {
   ok: boolean;
   deleted: number;
@@ -210,6 +223,7 @@ export const api = {
   getAppInfo: () => request<AppInfo>("/api/app/info"),
   checkUpdate: () => request<UpdateCheckResponse>("/api/app/update/check"),
   installUpdate: () => request<UpdateInstallResponse>("/api/app/update/install", { method: "POST" }),
+  getUpdateProgress: () => request<UpdateProgressResponse>("/api/app/update/progress"),
   exportData: () => requestBlob("/api/data/export"),
   importData: (formData: FormData) =>
     request<BackupImportResponse>("/api/data/import", { method: "POST", body: formData })
