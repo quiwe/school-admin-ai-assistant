@@ -7,6 +7,7 @@ import HistoryPage from "./pages/History";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import ReplyWorkbench from "./pages/ReplyWorkbench";
 import SettingsPage from "./pages/Settings";
+import StudentChat from "./pages/StudentChat";
 
 const nav = [
   { key: "reply", label: "回复工作台", icon: MessageSquareText },
@@ -17,11 +18,20 @@ const nav = [
 ];
 
 export default function App() {
+  const pathname = window.location.pathname.replace(/\/$/, "");
+  if (pathname === "/student-chat") {
+    return <StudentChat />;
+  }
+  return <DesktopApp />;
+}
+
+function DesktopApp() {
   const [page, setPage] = useState("reply");
   const [updateInfo, setUpdateInfo] = useState<UpdateCheckResponse | null>(null);
   const [updateDismissed, setUpdateDismissed] = useState(false);
   const [installingUpdate, setInstallingUpdate] = useState(false);
   const [updateMessage, setUpdateMessage] = useState("");
+  const studentChatUrl = `${window.location.origin}/student-chat`;
 
   useEffect(() => {
     api.checkUpdate()
@@ -64,7 +74,17 @@ export default function App() {
             <h1 className="text-lg font-semibold text-slate-900">高校行政 AI 回复助手</h1>
             <p className="text-xs text-slate-500">桌面端半自动草稿生成，所有回复由老师审核后发送</p>
           </div>
-          <div className="rounded-md bg-blue-50 px-3 py-1 text-xs text-blue-700">桌面版</div>
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+            <div className="flex max-w-[420px] min-w-0 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+              <span className="shrink-0 text-slate-500">网页端地址</span>
+              <code className="truncate font-mono text-slate-800">{studentChatUrl}</code>
+            </div>
+            <Button onClick={() => window.open(studentChatUrl, "_blank", "noopener,noreferrer")}>
+              <ExternalLink size={16} />
+              打开网页端
+            </Button>
+            <div className="rounded-md bg-blue-50 px-3 py-1 text-xs text-blue-700">桌面版</div>
+          </div>
         </div>
       </header>
       {updateInfo?.has_update && !updateDismissed && (

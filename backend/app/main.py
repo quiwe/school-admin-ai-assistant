@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
@@ -62,5 +63,16 @@ def update_install():
 
 
 static_dir = Path(__file__).resolve().parent / "static"
+
+
+@app.get("/student-chat", include_in_schema=False)
+@app.get("/student-chat/", include_in_schema=False)
+def student_chat_page():
+    index_file = static_dir / "index.html"
+    if not index_file.exists():
+        raise HTTPException(status_code=404, detail="前端页面尚未构建。")
+    return FileResponse(index_file)
+
+
 if static_dir.exists():
     app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
