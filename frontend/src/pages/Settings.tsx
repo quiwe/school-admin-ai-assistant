@@ -405,14 +405,6 @@ export default function SettingsPage() {
           </pre>
         </div>
       </Panel>
-
-      <Panel title="后续 TODO">
-        <ul className="list-disc space-y-2 pl-5 text-sm leading-6 text-slate-600">
-          <li>生产环境建议对 API Key 增加加密存储或接入密钥管理服务。</li>
-          <li>部分厂商可能不开放 `/models`，识别失败时可用控制台模型名手动保存。</li>
-          <li>增加向量检索，可替换为 Chroma、FAISS 或 pgvector。</li>
-        </ul>
-      </Panel>
     </div>
   );
 }

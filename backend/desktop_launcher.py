@@ -1,10 +1,12 @@
 import os
+import secrets
 import socket
 import sys
 import threading
 import time
 import traceback
 import urllib.request
+from urllib.parse import quote
 from pathlib import Path
 
 import uvicorn
@@ -34,7 +36,7 @@ def find_free_port(start: int = 8765, attempts: int = 30) -> int:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
-                sock.bind(("127.0.0.1", port))
+                sock.bind(("0.0.0.0", port))
             except OSError:
                 continue
             return port
@@ -45,6 +47,8 @@ def configure_runtime(root: Path, port: int) -> None:
     data_dir = data_root(root)
     upload_dir = data_dir / "uploads"
     upload_dir.mkdir(parents=True, exist_ok=True)
+    access_key = student_access_key(data_dir)
+    student_url = f"http://{local_network_ip()}:{port}/student-chat?access_key={quote(access_key)}"
 
     for path in [root / "backend", *resource_roots(root)]:
         if path.exists() and str(path) not in sys.path:
@@ -52,7 +56,9 @@ def configure_runtime(root: Path, port: int) -> None:
 
     os.environ["DATABASE_URL"] = sqlite_url(data_dir / "app.db")
     os.environ["UPLOAD_DIR"] = str(upload_dir)
-    os.environ["CORS_ORIGINS"] = f"http://127.0.0.1:{port},http://localhost:{port}"
+    os.environ["CORS_ORIGINS"] = f"http://127.0.0.1:{port},http://localhost:{port},{student_url.rsplit('/student-chat', 1)[0]}"
+    os.environ["STUDENT_ACCESS_KEY"] = access_key
+    os.environ["STUDENT_CHAT_URL"] = student_url
     os.chdir(root)
 
 
@@ -60,6 +66,35 @@ def data_root(root: Path) -> Path:
     if getattr(sys, "frozen", False) and sys.platform == "darwin":
         return Path.home() / "Library" / "Application Support" / "SchoolAdminAIAssistant" / "data"
     return root / "data"
+
+
+def student_access_key(data_dir: Path) -> str:
+    path = data_dir / "student_access_key.txt"
+    if path.exists():
+        value = path.read_text(encoding="utf-8").strip()
+        if value:
+            return value
+    value = secrets.token_urlsafe(16)
+    path.write_text(value, encoding="utf-8")
+    return value
+
+
+def local_network_ip() -> str:
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.connect(("8.8.8.8", 80))
+            ip = sock.getsockname()[0]
+            if ip and not ip.startswith("127."):
+                return ip
+    except Exception:
+        pass
+    try:
+        ip = socket.gethostbyname(socket.gethostname())
+        if ip and not ip.startswith("127."):
+            return ip
+    except Exception:
+        pass
+    return "127.0.0.1"
 
 
 def log_path(root: Path) -> Path:
@@ -90,12 +125,12 @@ def wait_for_server(port: int, timeout_seconds: float = 20) -> bool:
 
 def run_server(root: Path, port: int) -> None:
     try:
-        write_log(root, f"Starting local API on 127.0.0.1:{port}")
+        write_log(root, f"Starting local API on 0.0.0.0:{port}")
         from app.main import app as fastapi_app
 
         config = uvicorn.Config(
             fastapi_app,
-            host="127.0.0.1",
+            host="0.0.0.0",
             port=port,
             log_level="warning",
             loop="asyncio",

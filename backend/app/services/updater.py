@@ -18,7 +18,8 @@ GITHUB_REPO_URL = "https://github.com/quiwe/school-admin-ai-assistant"
 GITHUB_LATEST_RELEASE_API_URL = "https://api.github.com/repos/quiwe/school-admin-ai-assistant/releases/latest"
 GITHUB_LATEST_RELEASE_PAGE_URL = f"{GITHUB_REPO_URL}/releases/latest"
 VERSION_POLICY_URL = "https://raw.githubusercontent.com/quiwe/school-admin-ai-assistant/main/version-policy.json"
-INSTALLER_PATTERN = re.compile(r"SchoolAdminAIAssistant-Setup-v?[\d.]+\.exe$", re.IGNORECASE)
+WINDOWS_INSTALLER_PATTERN = re.compile(r"SchoolAdminAIAssistant-Setup-v?[\d.]+\.exe$", re.IGNORECASE)
+MACOS_INSTALLER_PATTERN = re.compile(r"SchoolAdminAIAssistant-macOS-v?[\d.]+\.dmg$", re.IGNORECASE)
 
 
 class UpdateError(RuntimeError):
@@ -225,28 +226,32 @@ def update_info_from_release(release: dict, local_version: str) -> UpdateInfo:
 
 
 def installer_name(version: str) -> str:
+    if sys.platform == "darwin":
+        return f"SchoolAdminAIAssistant-macOS-v{normalize_version(version)}.dmg"
     return f"SchoolAdminAIAssistant-Setup-v{normalize_version(version)}.exe"
 
 
 def find_installer_asset(assets: list[dict], latest_version: str) -> dict | None:
     expected_name = installer_name(latest_version)
+    pattern = MACOS_INSTALLER_PATTERN if sys.platform == "darwin" else WINDOWS_INSTALLER_PATTERN
+    extension = ".dmg" if sys.platform == "darwin" else ".exe"
     for asset in assets:
         if asset.get("name") == expected_name:
             return asset
     for asset in assets:
         name = asset.get("name") or ""
-        if INSTALLER_PATTERN.search(name):
+        if pattern.search(name):
             return asset
     for asset in assets:
         name = asset.get("name") or ""
-        if name.lower().endswith(".exe"):
+        if name.lower().endswith(extension):
             return asset
     return None
 
 
 def download_installer(info: UpdateInfo, progress_callback: Callable[[int, int | None], None] | None = None) -> Path:
     if not info.download_url or not info.asset_name:
-        raise UpdateError("最新 Release 中没有找到 Windows 安装包。")
+        raise UpdateError("最新 Release 中没有找到当前系统可用的安装包。")
 
     target = updates_dir() / info.asset_name
     temp_target = target.with_suffix(target.suffix + ".download")
@@ -387,7 +392,10 @@ def download_and_launch_update_in_background() -> None:
 
 def launch_installer(installer: Path) -> None:
     try:
-        subprocess.Popen([str(installer)], cwd=str(installer.parent), close_fds=True)
+        if sys.platform == "darwin":
+            subprocess.Popen(["open", str(installer)], cwd=str(installer.parent), close_fds=True)
+        else:
+            subprocess.Popen([str(installer)], cwd=str(installer.parent), close_fds=True)
     except Exception as exc:
         raise UpdateError(f"启动安装程序失败：{exc}") from exc
 

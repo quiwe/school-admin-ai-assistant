@@ -25,6 +25,17 @@ class GenerateReplyResponse(BaseModel):
     ai_error: str | None = None
 
 
+class StudentGenerateReplyRequest(BaseModel):
+    question: str = Field(..., min_length=1)
+    style: str = "normal"
+
+
+class StudentGenerateReplyResponse(BaseModel):
+    answer: str
+    category: str
+    need_human_review: bool = False
+
+
 class RewriteReplyRequest(BaseModel):
     question: str
     answer: str
@@ -208,3 +219,7 @@ class UpdateInstallResponse(BaseModel):
     ok: bool
     message: str
     installer_path: str | None = None
+
+
+class StudentLinkResponse(BaseModel):
+    url: str

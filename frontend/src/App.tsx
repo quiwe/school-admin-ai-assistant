@@ -34,7 +34,7 @@ function DesktopApp() {
   const [updateProgress, setUpdateProgress] = useState<UpdateProgressResponse | null>(null);
   const [webClientDialogOpen, setWebClientDialogOpen] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
-  const studentChatUrl = `${window.location.origin}/student-chat`;
+  const [studentChatUrl, setStudentChatUrl] = useState("");
 
   useEffect(() => {
     api.checkUpdate()
@@ -43,6 +43,9 @@ function DesktopApp() {
           setUpdateInfo(data);
         }
       })
+      .catch(() => undefined);
+    api.getStudentLink()
+      .then((data) => setStudentChatUrl(data.url))
       .catch(() => undefined);
   }, []);
 
@@ -91,9 +94,11 @@ function DesktopApp() {
       }
     }
     setUpdateMessage("下载仍在进行，请稍候。");
+    setInstallingUpdate(false);
   }
 
   async function copyStudentChatUrl() {
+    if (!studentChatUrl) return;
     try {
       await navigator.clipboard.writeText(studentChatUrl);
     } catch {
@@ -128,9 +133,9 @@ function DesktopApp() {
           <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
             <div className="flex max-w-[420px] min-w-0 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
               <span className="shrink-0 text-slate-500">网页端地址</span>
-              <code className="truncate font-mono text-slate-800">{studentChatUrl}</code>
+              <code className="truncate font-mono text-slate-800">{studentChatUrl || "正在生成网页端地址..."}</code>
             </div>
-            <Button onClick={() => setWebClientDialogOpen(true)}>
+            <Button onClick={() => setWebClientDialogOpen(true)} disabled={!studentChatUrl}>
               <ExternalLink size={16} />
               打开网页端
             </Button>
@@ -153,14 +158,16 @@ function DesktopApp() {
               </button>
             </div>
             <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
-              <code className="block break-all font-mono text-sm leading-6 text-slate-800">{studentChatUrl}</code>
+              <code className="block break-all font-mono text-sm leading-6 text-slate-800">
+                {studentChatUrl || "正在生成网页端地址..."}
+              </code>
             </div>
             <div className="mt-4 flex flex-wrap justify-end gap-2">
-              <Button onClick={copyStudentChatUrl}>
+              <Button onClick={copyStudentChatUrl} disabled={!studentChatUrl}>
                 {copiedUrl ? <Check size={16} /> : <Copy size={16} />}
                 {copiedUrl ? "已复制" : "复制地址"}
               </Button>
-              <PrimaryButton onClick={() => window.location.assign(studentChatUrl)}>
+              <PrimaryButton onClick={() => studentChatUrl && window.location.assign(studentChatUrl)} disabled={!studentChatUrl}>
                 <ExternalLink size={16} />
                 进入网页端
               </PrimaryButton>

@@ -151,6 +151,16 @@ export type UpdateInstallResponse = {
   installer_path?: string | null;
 };
 
+export type StudentLinkResponse = {
+  url: string;
+};
+
+export type StudentReplyResponse = {
+  answer: string;
+  category: string;
+  need_human_review: boolean;
+};
+
 export type UpdateProgressResponse = {
   status: "idle" | "checking" | "downloading" | "launching" | "completed" | "error";
   phase: string;
@@ -221,9 +231,16 @@ export const api = {
   testAIProvider: (payload: { provider_id: string; api_key?: string; base_url?: string; model?: string }) =>
     request<AIProviderTestResponse>("/api/settings/ai/test", { method: "POST", body: JSON.stringify(payload) }),
   getAppInfo: () => request<AppInfo>("/api/app/info"),
+  getStudentLink: () => request<StudentLinkResponse>("/api/app/student-link"),
   checkUpdate: () => request<UpdateCheckResponse>("/api/app/update/check"),
   installUpdate: () => request<UpdateInstallResponse>("/api/app/update/install", { method: "POST" }),
   getUpdateProgress: () => request<UpdateProgressResponse>("/api/app/update/progress"),
+  generateStudentReply: (question: string, accessKey: string, style = "normal") =>
+    request<StudentReplyResponse>("/api/student/reply/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Student-Access-Key": accessKey },
+      body: JSON.stringify({ question, style })
+    }),
   exportData: () => requestBlob("/api/data/export"),
   importData: (formData: FormData) =>
     request<BackupImportResponse>("/api/data/import", { method: "POST", body: formData })

@@ -21,6 +21,8 @@ class AppSettings(BaseSettings):
     local_model_name: str = "llama3.1"
     enable_ai_fallback: bool = True
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    student_access_key: str | None = None
+    student_chat_url: str | None = None
 
     class Config:
         env_file = ".env"
