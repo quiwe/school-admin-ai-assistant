@@ -55,8 +55,9 @@ def generate_reply(payload: GenerateReplyRequest, db: Session = Depends(get_db))
     ai_config = get_ai_config(db)
     refs_for_ai = [{"title": ref.title, "content": ref.content[:800]} for ref in references]
     try:
-        answer = ai_provider.generate_reply(payload.question, refs_for_ai, payload.style, ai_config)
-        if not answer.strip():
+        result = ai_provider.generate_reply(payload.question, refs_for_ai, payload.style, ai_config)
+        answer = result.text.strip()
+        if not answer:
             raise RuntimeError("大模型返回了空内容。")
     except Exception as exc:
         return GenerateReplyResponse(
@@ -75,7 +76,7 @@ def generate_reply(payload: GenerateReplyRequest, db: Session = Depends(get_db))
         )
 
     return GenerateReplyResponse(
-        answer=answer.strip(),
+        answer=answer,
         category=category,
         confidence=confidence,
         need_human_review=False,
@@ -83,6 +84,14 @@ def generate_reply(payload: GenerateReplyRequest, db: Session = Depends(get_db))
         ai_used=True,
         ai_provider=ai_config.ai_provider,
         ai_model=ai_config.model,
+        prompt_tokens=result.usage.prompt_tokens if result.usage else None,
+        completion_tokens=result.usage.completion_tokens if result.usage else None,
+        total_tokens=result.usage.total_tokens if result.usage else None,
+        prompt_cache_hit_tokens=result.usage.prompt_cache_hit_tokens if result.usage else None,
+        prompt_cache_miss_tokens=result.usage.prompt_cache_miss_tokens if result.usage else None,
+        cache_hit_ratio=result.usage.cache_hit_ratio if result.usage else None,
+        cost_usd=result.usage.cost_usd if result.usage else None,
+        cost_cny=result.usage.cost_cny if result.usage else None,
     )
 
 

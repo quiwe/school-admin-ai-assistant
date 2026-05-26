@@ -1,4 +1,5 @@
 from pathlib import Path
+from dataclasses import dataclass
 
 import httpx
 from openai import OpenAI
@@ -9,9 +10,38 @@ from ..settings import settings
 
 SYSTEM_PROMPT = (Path(__file__).resolve().parents[1] / "prompts" / "system_prompt.txt").read_text(encoding="utf-8")
 
+USD_TO_CNY = 7.2
+
+MODEL_PRICING_USD_PER_1M: dict[str, dict[str, float]] = {
+    "deepseek-v4-flash": {"cache_hit": 0.0028, "cache_miss": 0.14, "output": 0.28},
+    "deepseek-v4-pro": {"cache_hit": 0.003625, "cache_miss": 0.435, "output": 0.87},
+    "deepseek-chat": {"cache_hit": 0.0028, "cache_miss": 0.14, "output": 0.28},
+    "deepseek-reasoner": {"cache_hit": 0.0028, "cache_miss": 0.14, "output": 0.28},
+    "gpt-4o-mini": {"cache_hit": 0.075, "cache_miss": 0.15, "output": 0.6},
+    "gpt-4o": {"cache_hit": 1.25, "cache_miss": 2.5, "output": 10.0},
+}
+
+
+@dataclass
+class AIUsage:
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    prompt_cache_hit_tokens: int = 0
+    prompt_cache_miss_tokens: int = 0
+    cache_hit_ratio: float | None = None
+    cost_usd: float | None = None
+    cost_cny: float | None = None
+
+
+@dataclass
+class AIChatResult:
+    text: str
+    usage: AIUsage | None = None
+
 
 class AIProvider:
-    def generate_reply(self, question: str, references: list[dict], style: str = "normal", config: AIConfig | None = None) -> str:
+    def generate_reply(self, question: str, references: list[dict], style: str = "normal", config: AIConfig | None = None) -> AIChatResult:
         context = format_references(references)
         user_prompt = (
             f"学生问题：{question}\n\n"
@@ -35,9 +65,9 @@ class AIProvider:
             f"改写要求：{style_map.get(style, style)}\n"
             "请只输出改写后的微信回复，不要添加解释。"
         )
-        return self._chat(user_prompt, config)
+        return self._chat(user_prompt, config).text
 
-    def _chat(self, user_prompt: str, config: AIConfig | None = None) -> str:
+    def _chat(self, user_prompt: str, config: AIConfig | None = None) -> AIChatResult:
         config = config or AIConfig(
             ai_provider=settings.ai_provider,
             provider_type="openai_compatible",
@@ -53,7 +83,7 @@ class AIProvider:
             return self._chat_gemini(user_prompt, config)
         return self._chat_openai_compatible(user_prompt, config)
 
-    def _chat_openai_compatible(self, user_prompt: str, config: AIConfig) -> str:
+    def _chat_openai_compatible(self, user_prompt: str, config: AIConfig) -> AIChatResult:
         client = OpenAI(api_key=config.api_key or "not-needed", base_url=config.base_url)
         response = client.chat.completions.create(
             model=config.model,
@@ -63,9 +93,12 @@ class AIProvider:
             ],
             temperature=0.2,
         )
-        return response.choices[0].message.content or ""
+        return AIChatResult(
+            text=response.choices[0].message.content or "",
+            usage=usage_from_raw(getattr(response, "usage", None), config.model),
+        )
 
-    def _chat_ollama(self, user_prompt: str, config: AIConfig) -> str:
+    def _chat_ollama(self, user_prompt: str, config: AIConfig) -> AIChatResult:
         payload = {
             "model": config.model,
             "messages": [
@@ -78,9 +111,12 @@ class AIProvider:
             response = client.post(f"{config.base_url.rstrip('/')}/api/chat", json=payload)
             response.raise_for_status()
             data = response.json()
-        return data.get("message", {}).get("content", "")
+        return AIChatResult(
+            text=data.get("message", {}).get("content", ""),
+            usage=usage_from_raw(data, config.model),
+        )
 
-    def _chat_anthropic(self, user_prompt: str, config: AIConfig) -> str:
+    def _chat_anthropic(self, user_prompt: str, config: AIConfig) -> AIChatResult:
         if not config.api_key:
             raise RuntimeError("Claude / Anthropic 需要 API Key。")
         payload = {
@@ -100,9 +136,12 @@ class AIProvider:
             response.raise_for_status()
             data = response.json()
         parts = data.get("content") or []
-        return "".join(part.get("text", "") for part in parts if part.get("type") == "text").strip()
+        return AIChatResult(
+            text="".join(part.get("text", "") for part in parts if part.get("type") == "text").strip(),
+            usage=usage_from_raw(data.get("usage"), config.model),
+        )
 
-    def _chat_gemini(self, user_prompt: str, config: AIConfig) -> str:
+    def _chat_gemini(self, user_prompt: str, config: AIConfig) -> AIChatResult:
         if not config.api_key:
             raise RuntimeError("Google Gemini 需要 API Key。")
         payload = {
@@ -117,9 +156,12 @@ class AIProvider:
             data = response.json()
         candidates = data.get("candidates") or []
         if not candidates:
-            return ""
+            return AIChatResult(text="", usage=usage_from_raw(data.get("usageMetadata"), config.model))
         parts = candidates[0].get("content", {}).get("parts") or []
-        return "".join(part.get("text", "") for part in parts).strip()
+        return AIChatResult(
+            text="".join(part.get("text", "") for part in parts).strip(),
+            usage=usage_from_raw(data.get("usageMetadata"), config.model),
+        )
 
 
 def format_references(references: list[dict]) -> str:
@@ -127,6 +169,92 @@ def format_references(references: list[dict]) -> str:
         return "无明确依据。"
     return "\n\n".join(
         f"[{index}] {ref['title']}\n{ref['content']}" for index, ref in enumerate(references, start=1)
+    )
+
+
+def usage_from_raw(raw: object, model: str) -> AIUsage | None:
+    data = raw_to_dict(raw)
+    if not data:
+        return None
+    prompt = int_value(data, "prompt_tokens", "prompt_eval_count", "input_tokens", "promptTokenCount")
+    completion = int_value(
+        data,
+        "completion_tokens",
+        "eval_count",
+        "output_tokens",
+        "candidatesTokenCount",
+    )
+    total = int_value(data, "total_tokens", "totalTokenCount") or prompt + completion
+    cache_hit = int_value(
+        data,
+        "prompt_cache_hit_tokens",
+        "cache_read_input_tokens",
+        "cachedContentTokenCount",
+    )
+    explicit_miss = int_value(data, "prompt_cache_miss_tokens")
+    cache_miss = explicit_miss if explicit_miss else max(0, prompt - cache_hit)
+    if prompt == 0 and completion == 0 and total == 0:
+        return None
+    denom = cache_hit + cache_miss
+    ratio = round(cache_hit / denom, 4) if denom > 0 and cache_hit > 0 else None
+    cost_usd = estimate_cost_usd(model, cache_hit, cache_miss, completion)
+    return AIUsage(
+        prompt_tokens=prompt,
+        completion_tokens=completion,
+        total_tokens=total,
+        prompt_cache_hit_tokens=cache_hit,
+        prompt_cache_miss_tokens=cache_miss,
+        cache_hit_ratio=ratio,
+        cost_usd=cost_usd,
+        cost_cny=round(cost_usd * USD_TO_CNY, 6) if cost_usd is not None else None,
+    )
+
+
+def raw_to_dict(raw: object) -> dict:
+    if raw is None:
+        return {}
+    if isinstance(raw, dict):
+        return raw
+    if hasattr(raw, "model_dump"):
+        return raw.model_dump()
+    result: dict[str, object] = {}
+    for key in [
+        "prompt_tokens",
+        "completion_tokens",
+        "total_tokens",
+        "prompt_cache_hit_tokens",
+        "prompt_cache_miss_tokens",
+        "prompt_eval_count",
+        "eval_count",
+        "input_tokens",
+        "output_tokens",
+        "cache_read_input_tokens",
+    ]:
+        if hasattr(raw, key):
+            result[key] = getattr(raw, key)
+    return result
+
+
+def int_value(data: dict, *keys: str) -> int:
+    for key in keys:
+        value = data.get(key)
+        if isinstance(value, int | float):
+            return int(value)
+    return 0
+
+
+def estimate_cost_usd(model: str, cache_hit: int, cache_miss: int, completion: int) -> float | None:
+    pricing = MODEL_PRICING_USD_PER_1M.get(model)
+    if not pricing:
+        return None
+    return round(
+        (
+            cache_hit * pricing["cache_hit"]
+            + cache_miss * pricing["cache_miss"]
+            + completion * pricing["output"]
+        )
+        / 1_000_000,
+        6,
     )
 
 

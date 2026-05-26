@@ -67,7 +67,7 @@ def test_ai_provider(payload: AIProviderTestRequest, db: Session = Depends(get_d
     )
     started = time.perf_counter()
     try:
-        text = ai_provider._chat("请回复“连接测试成功”，不要输出其他内容。", config)
+        text = ai_provider._chat("请回复“连接测试成功”，不要输出其他内容。", config).text
     except Exception as exc:
         latency_ms = int((time.perf_counter() - started) * 1000)
         raise HTTPException(status_code=400, detail=f"模型测试失败：{exc}，耗时 {latency_ms} ms") from exc

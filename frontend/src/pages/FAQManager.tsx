@@ -25,6 +25,22 @@ export default function FAQManager() {
     load();
   }, []);
 
+  useEffect(() => {
+    const refresh = () => {
+      void load();
+    };
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") refresh();
+    }, 15000);
+    window.addEventListener("faq:changed", refresh);
+    window.addEventListener("app:show-faq", refresh);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("faq:changed", refresh);
+      window.removeEventListener("app:show-faq", refresh);
+    };
+  }, [keyword]);
+
   async function submit() {
     if (!form.question || !form.answer) return;
     setMessage("");

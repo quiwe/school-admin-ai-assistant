@@ -24,6 +24,22 @@ export default function HistoryPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    const refresh = () => {
+      void load();
+    };
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") refresh();
+    }, 15000);
+    window.addEventListener("history:changed", refresh);
+    window.addEventListener("app:show-history", refresh);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("history:changed", refresh);
+      window.removeEventListener("app:show-history", refresh);
+    };
+  }, [keyword, category]);
+
   async function saveAsFAQ(item: HistoryItem) {
     const answer = item.final_answer || item.ai_answer;
     if (!item.student_question.trim() || !answer.trim()) return;
@@ -36,6 +52,7 @@ export default function HistoryPage() {
         category: item.category || "其他",
         allow_auto_reply: true
       });
+      window.dispatchEvent(new Event("faq:changed"));
       setSavedFAQIds((current) => Array.from(new Set([...current, item.id])));
       setMessage("已保存到 FAQ 管理");
     } catch (err) {

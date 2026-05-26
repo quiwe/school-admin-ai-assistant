@@ -23,6 +23,14 @@ class GenerateReplyResponse(BaseModel):
     ai_provider: str | None = None
     ai_model: str | None = None
     ai_error: str | None = None
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    total_tokens: int | None = None
+    prompt_cache_hit_tokens: int | None = None
+    prompt_cache_miss_tokens: int | None = None
+    cache_hit_ratio: float | None = None
+    cost_usd: float | None = None
+    cost_cny: float | None = None
 
 
 class StudentGenerateReplyRequest(BaseModel):

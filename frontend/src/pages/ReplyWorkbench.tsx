@@ -27,7 +27,15 @@ export default function ReplyWorkbench() {
         ai_used: data.ai_used,
         ai_provider: data.ai_provider,
         ai_model: data.ai_model,
-        ai_error: data.ai_error
+        ai_error: data.ai_error,
+        prompt_tokens: data.prompt_tokens,
+        completion_tokens: data.completion_tokens,
+        total_tokens: data.total_tokens,
+        prompt_cache_hit_tokens: data.prompt_cache_hit_tokens,
+        prompt_cache_miss_tokens: data.prompt_cache_miss_tokens,
+        cache_hit_ratio: data.cache_hit_ratio,
+        cost_usd: data.cost_usd,
+        cost_cny: data.cost_cny
       });
       await api.createHistory({
         student_question: question,
@@ -37,6 +45,7 @@ export default function ReplyWorkbench() {
         confidence: data.confidence,
         need_human_review: data.need_human_review
       });
+      window.dispatchEvent(new Event("history:changed"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "生成失败");
     } finally {
@@ -85,6 +94,7 @@ export default function ReplyWorkbench() {
         allow_auto_reply: true,
         force
       });
+      window.dispatchEvent(new Event("faq:changed"));
       setFAQMessage("已保存到 FAQ 管理");
       setTimeout(() => setFAQMessage(""), 1800);
     } catch (err) {
@@ -130,6 +140,13 @@ export default function ReplyWorkbench() {
                   {meta.need_human_review ? "建议人工核实" : "可审核后发送"}
                 </span>
                 <span>{Math.round(meta.confidence * 100)}%</span>
+                {meta.total_tokens ? <span>{formatTokens(meta.total_tokens)} tokens</span> : null}
+                {typeof meta.cache_hit_ratio === "number" ? (
+                  <span className="text-violet-700">缓存 {Math.round(meta.cache_hit_ratio * 100)}%</span>
+                ) : null}
+                {typeof meta.cost_cny === "number" ? (
+                  <span className="text-blue-700">本次 ¥{meta.cost_cny.toFixed(4)}</span>
+                ) : null}
               </div>
             ) : null
           }
@@ -191,4 +208,10 @@ export default function ReplyWorkbench() {
       </Panel>
     </div>
   );
+}
+
+function formatTokens(value: number) {
+  if (value < 1000) return String(value);
+  const k = value / 1000;
+  return k >= 100 ? `${k.toFixed(0)}k` : `${k.toFixed(1)}k`;
 }

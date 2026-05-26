@@ -1,4 +1,4 @@
-import { AlertCircle, Bot, Loader2, Send, UserRound } from "lucide-react";
+import { AlertCircle, ArrowLeft, Bot, Loader2, Send, UserRound } from "lucide-react";
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 
@@ -98,6 +98,15 @@ export default function StudentChat() {
     <div className="flex h-screen flex-col overflow-hidden bg-[#eef3f8]">
       <header className="shrink-0 border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-16 w-full max-w-4xl items-center gap-3 px-4 sm:px-6">
+          <button
+            type="button"
+            onClick={() => window.location.assign("/")}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
+            title="返回桌面端"
+            aria-label="返回桌面端"
+          >
+            <ArrowLeft size={18} />
+          </button>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-blue-600 text-white">
             <Bot size={22} />
           </div>

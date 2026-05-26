@@ -35,6 +35,14 @@ export type ReplyResponse = {
   ai_provider?: string | null;
   ai_model?: string | null;
   ai_error?: string | null;
+  prompt_tokens?: number | null;
+  completion_tokens?: number | null;
+  total_tokens?: number | null;
+  prompt_cache_hit_tokens?: number | null;
+  prompt_cache_miss_tokens?: number | null;
+  cache_hit_ratio?: number | null;
+  cost_usd?: number | null;
+  cost_cny?: number | null;
 };
 
 export type KnowledgeFile = {
