@@ -23,6 +23,12 @@ class AppSettings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     student_access_key: str | None = None
     student_chat_url: str | None = None
+    qq_enabled: bool = False
+    qq_appid: str | None = None
+    qq_secret: str | None = None
+    qq_sandbox: bool = False
+    qq_owner_openid: str | None = None
+    qq_allowlist: str | None = None
 
     class Config:
         env_file = ".env"

@@ -11,9 +11,13 @@ from ..schemas import (
     AIProviderTestResponse,
     AISettingsRead,
     AISettingsUpdate,
+    QQSettingsRead,
+    QQSettingsUpdate,
 )
 from ..services.ai_provider import ai_provider
 from ..services.model_discovery import ModelDiscoveryError, discover_models
+from ..services.qq_bot import qq_bot_service
+from ..services.qq_config import load_qq_config, save_qq_config
 from ..services.runtime_config import (
     AIConfig,
     PROVIDER_MAP,
@@ -73,4 +77,41 @@ def test_ai_provider(payload: AIProviderTestRequest, db: Session = Depends(get_d
         message="模型连接测试成功",
         latency_ms=latency_ms,
         preview=text.strip()[:120],
+    )
+
+
+@router.get("/qq", response_model=QQSettingsRead)
+def read_qq_settings(db: Session = Depends(get_db)):
+    config = load_qq_config(db)
+    return QQSettingsRead(
+        enabled=config.enabled,
+        app_id=config.app_id,
+        app_secret_configured=config.app_secret_configured,
+        sandbox=config.sandbox,
+        owner_openid=config.owner_openid,
+        allowlist=config.allowlist or [],
+        running=qq_bot_service.is_running(),
+    )
+
+
+@router.put("/qq", response_model=QQSettingsRead)
+async def update_qq_settings(payload: QQSettingsUpdate, db: Session = Depends(get_db)):
+    config = save_qq_config(
+        db,
+        enabled=payload.enabled,
+        app_id=payload.app_id,
+        app_secret=payload.app_secret,
+        sandbox=payload.sandbox,
+        owner_openid=payload.owner_openid,
+        allowlist=payload.allowlist,
+    )
+    await qq_bot_service.apply_saved_config()
+    return QQSettingsRead(
+        enabled=config.enabled,
+        app_id=config.app_id,
+        app_secret_configured=config.app_secret_configured,
+        sandbox=config.sandbox,
+        owner_openid=config.owner_openid,
+        allowlist=config.allowlist or [],
+        running=qq_bot_service.is_running(),
     )
