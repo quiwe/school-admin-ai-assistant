@@ -1,12 +1,23 @@
-import { Activity, CheckCircle2, Download, ExternalLink, KeyRound, ListFilter, Save, Upload } from "lucide-react";
+import { Activity, Bot, CheckCircle2, Download, ExternalLink, KeyRound, ListFilter, Save, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { api, AIProviderConfig, AISettingsUpdate, AppInfo } from "../api/client";
-import { Button, Input, Panel, PrimaryButton, Select } from "../components/ui";
+import { api, AIProviderConfig, AISettingsUpdate, AppInfo, QQSettingsUpdate } from "../api/client";
+import { Button, Input, Panel, PrimaryButton, Select, Textarea } from "../components/ui";
 
 type ProviderForm = {
   api_key: string;
   base_url: string;
   model: string;
+};
+
+type QQForm = {
+  enabled: boolean;
+  app_id: string;
+  app_secret: string;
+  app_secret_configured: boolean;
+  sandbox: boolean;
+  owner_openid: string;
+  allowlist_text: string;
+  running: boolean;
 };
 
 export default function SettingsPage() {
@@ -25,9 +36,23 @@ export default function SettingsPage() {
   const [backupInputKey, setBackupInputKey] = useState(0);
   const [backupStatus, setBackupStatus] = useState("");
   const [backupError, setBackupError] = useState("");
+  const [qqForm, setQQForm] = useState<QQForm>({
+    enabled: false,
+    app_id: "",
+    app_secret: "",
+    app_secret_configured: false,
+    sandbox: false,
+    owner_openid: "",
+    allowlist_text: "",
+    running: false
+  });
+  const [savingQQ, setSavingQQ] = useState(false);
+  const [qqStatus, setQQStatus] = useState("");
+  const [qqError, setQQError] = useState("");
 
   useEffect(() => {
     loadSettings();
+    loadQQSettings();
     api.getAppInfo().then(setAppInfo).catch(() => undefined);
   }, []);
 
@@ -59,6 +84,26 @@ export default function SettingsPage() {
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "读取设置失败");
+    }
+  }
+
+  async function loadQQSettings() {
+    try {
+      const data = await api.getQQSettings();
+      setQQForm({
+        enabled: data.enabled,
+        app_id: data.app_id,
+        app_secret: "",
+        app_secret_configured: data.app_secret_configured,
+        sandbox: data.sandbox,
+        owner_openid: data.owner_openid,
+        allowlist_text: data.allowlist.join("\n"),
+        running: data.running
+      });
+      setQQStatus("");
+      setQQError("");
+    } catch (err) {
+      setQQError(err instanceof Error ? err.message : "读取 QQ Bot 设置失败");
     }
   }
 
@@ -120,6 +165,56 @@ export default function SettingsPage() {
       setError(err instanceof Error ? err.message : "保存失败");
     } finally {
       setSaving(false);
+    }
+  }
+
+  function updateQQField<K extends keyof QQForm>(field: K, value: QQForm[K]) {
+    setQQStatus("");
+    setQQError("");
+    setQQForm((current) => ({ ...current, [field]: value }));
+  }
+
+  async function saveQQSettings() {
+    setQQStatus("");
+    setQQError("");
+    const appId = qqForm.app_id.trim();
+    if (qqForm.enabled && !appId) {
+      setQQError("启用 QQ Bot 前请填写 AppID");
+      return;
+    }
+    if (qqForm.enabled && !qqForm.app_secret.trim() && !qqForm.app_secret_configured) {
+      setQQError("启用 QQ Bot 前请填写 AppSecret");
+      return;
+    }
+    setSavingQQ(true);
+    try {
+      const payload: QQSettingsUpdate = {
+        enabled: qqForm.enabled,
+        app_id: appId,
+        ...(qqForm.app_secret.trim() ? { app_secret: qqForm.app_secret.trim() } : {}),
+        sandbox: qqForm.sandbox,
+        owner_openid: qqForm.owner_openid.trim(),
+        allowlist: qqForm.allowlist_text
+          .split(/[\n,\s]+/)
+          .map((item) => item.trim())
+          .filter(Boolean)
+      };
+      const data = await api.updateQQSettings(payload);
+      setQQForm({
+        enabled: data.enabled,
+        app_id: data.app_id,
+        app_secret: "",
+        app_secret_configured: data.app_secret_configured,
+        sandbox: data.sandbox,
+        owner_openid: data.owner_openid,
+        allowlist_text: data.allowlist.join("\n"),
+        running: data.running
+      });
+      setQQStatus(data.enabled ? (data.running ? "QQ Bot 已保存并启动" : "已保存，但机器人尚未启动") : "QQ Bot 已保存并停用");
+    } catch (err) {
+      setQQError(err instanceof Error ? err.message : "保存 QQ Bot 设置失败");
+    } finally {
+      setSavingQQ(false);
     }
   }
 
@@ -349,6 +444,90 @@ export default function SettingsPage() {
           <PrimaryButton onClick={saveSettings} disabled={saving || !activeProviderInfo}>
             <Save size={16} />
             {saving ? "保存中" : "保存模型配置"}
+          </PrimaryButton>
+        </div>
+      </Panel>
+
+      <Panel
+        title="QQ Bot 机器人"
+        action={
+          <div className="text-xs">
+            {qqStatus && <span className="text-emerald-700">{qqStatus}</span>}
+            {qqError && <span className="text-red-600">{qqError}</span>}
+          </div>
+        }
+      >
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
+          <div className="grid gap-3 lg:grid-cols-2">
+            <label className="space-y-1 text-sm">
+              <span className="font-medium text-slate-700">AppID</span>
+              <Input
+                placeholder="QQ 机器人 AppID"
+                value={qqForm.app_id}
+                onChange={(event) => updateQQField("app_id", event.target.value)}
+              />
+            </label>
+            <label className="space-y-1 text-sm">
+              <span className="font-medium text-slate-700">AppSecret</span>
+              <div className="relative">
+                <KeyRound className="pointer-events-none absolute left-3 top-2.5 text-slate-400" size={15} />
+                <Input
+                  className="pl-9"
+                  type="password"
+                  placeholder={qqForm.app_secret_configured ? "已配置，留空不修改" : "请输入 AppSecret"}
+                  value={qqForm.app_secret}
+                  onChange={(event) => updateQQField("app_secret", event.target.value)}
+                />
+              </div>
+            </label>
+            <label className="space-y-1 text-sm">
+              <span className="font-medium text-slate-700">Owner OpenID</span>
+              <Input
+                placeholder="可选：只允许这个 QQ 用户使用"
+                value={qqForm.owner_openid}
+                onChange={(event) => updateQQField("owner_openid", event.target.value)}
+              />
+            </label>
+            <label className="space-y-1 text-sm lg:col-span-2">
+              <span className="font-medium text-slate-700">允许名单</span>
+              <Textarea
+                className="min-h-20"
+                placeholder="可选：多个 OpenID 用空格、逗号或换行分隔"
+                value={qqForm.allowlist_text}
+                onChange={(event) => updateQQField("allowlist_text", event.target.value)}
+              />
+            </label>
+          </div>
+          <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
+            <div className="flex items-center gap-2 font-semibold text-slate-900">
+              <Bot size={16} />
+              {qqForm.running ? "机器人运行中" : "机器人未运行"}
+            </div>
+            <label className="mt-4 flex items-center gap-2 text-slate-700">
+              <input
+                type="checkbox"
+                checked={qqForm.enabled}
+                onChange={(event) => updateQQField("enabled", event.target.checked)}
+              />
+              启用 QQ Bot
+            </label>
+            <label className="mt-3 flex items-center gap-2 text-slate-700">
+              <input
+                type="checkbox"
+                checked={qqForm.sandbox}
+                onChange={(event) => updateQQField("sandbox", event.target.checked)}
+              />
+              使用沙箱环境
+            </label>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
+          <p className="text-sm text-slate-500">
+            点击保存后，后端会按当前配置启动或停止 QQ Bot。未填写 Owner/允许名单时，机器人会绑定首次发消息的 QQ 用户。
+          </p>
+          <PrimaryButton onClick={saveQQSettings} disabled={savingQQ}>
+            <Save size={16} />
+            {savingQQ ? "保存中" : "保存 QQ 配置"}
           </PrimaryButton>
         </div>
       </Panel>

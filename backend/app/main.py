@@ -10,12 +10,23 @@ from .database import Base, engine
 from .routers import data, faq, history, knowledge, reply, settings as settings_router, student
 from .schemas import StudentLinkResponse, UpdateCheckResponse, UpdateInstallResponse, UpdateProgressResponse
 from .services.app_info import get_app_info
+from .services.qq_bot import qq_bot_service
 from .services.updater import UpdateError, check_for_update, get_update_progress, start_download_and_launch_update
 from .settings import settings
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.app_name)
+
+
+@app.on_event("startup")
+async def startup_services():
+    await qq_bot_service.apply_saved_config()
+
+
+@app.on_event("shutdown")
+async def shutdown_services():
+    await qq_bot_service.stop()
 
 app.add_middleware(
     CORSMiddleware,

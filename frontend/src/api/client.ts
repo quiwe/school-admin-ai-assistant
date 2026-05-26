@@ -114,6 +114,25 @@ export type AIProviderTestResponse = {
   preview: string;
 };
 
+export type QQSettings = {
+  enabled: boolean;
+  app_id: string;
+  app_secret_configured: boolean;
+  sandbox: boolean;
+  owner_openid: string;
+  allowlist: string[];
+  running: boolean;
+};
+
+export type QQSettingsUpdate = {
+  enabled: boolean;
+  app_id: string;
+  app_secret?: string;
+  sandbox: boolean;
+  owner_openid: string;
+  allowlist: string[];
+};
+
 export type BackupImportResponse = {
   ok: boolean;
   imported_faq: number;
@@ -231,6 +250,9 @@ export const api = {
     request<AIModelListResponse>("/api/settings/ai/models", { method: "POST", body: JSON.stringify(payload) }),
   testAIProvider: (payload: { provider_id: string; api_key?: string; base_url?: string; model?: string }) =>
     request<AIProviderTestResponse>("/api/settings/ai/test", { method: "POST", body: JSON.stringify(payload) }),
+  getQQSettings: () => request<QQSettings>("/api/settings/qq"),
+  updateQQSettings: (payload: QQSettingsUpdate) =>
+    request<QQSettings>("/api/settings/qq", { method: "PUT", body: JSON.stringify(payload) }),
   getAppInfo: () => request<AppInfo>("/api/app/info"),
   getStudentLink: () => request<StudentLinkResponse>("/api/app/student-link"),
   checkUpdate: () => request<UpdateCheckResponse>("/api/app/update/check"),

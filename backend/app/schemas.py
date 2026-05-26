@@ -178,6 +178,25 @@ class AIProviderTestResponse(BaseModel):
     preview: str = ""
 
 
+class QQSettingsRead(BaseModel):
+    enabled: bool = False
+    app_id: str = ""
+    app_secret_configured: bool = False
+    sandbox: bool = False
+    owner_openid: str = ""
+    allowlist: list[str] = Field(default_factory=list)
+    running: bool = False
+
+
+class QQSettingsUpdate(BaseModel):
+    enabled: bool = False
+    app_id: str = ""
+    app_secret: str | None = None
+    sandbox: bool = False
+    owner_openid: str = ""
+    allowlist: list[str] = Field(default_factory=list)
+
+
 class BackupImportResponse(BaseModel):
     ok: bool
     imported_faq: int = 0
