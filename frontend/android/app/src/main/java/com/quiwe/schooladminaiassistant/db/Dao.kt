@@ -82,6 +82,9 @@ interface HistoryDao {
     @Query("SELECT * FROM reply_history WHERE category = :category ORDER BY created_at DESC LIMIT :limit")
     suspend fun listByCategory(category: String, limit: Int = 200): List<ReplyHistoryEntity>
 
+    @Query("SELECT * FROM reply_history WHERE (student_question LIKE '%' || :keyword || '%' OR final_answer LIKE '%' || :keyword || '%') AND category = :category ORDER BY created_at DESC LIMIT :limit")
+    suspend fun searchByKeywordAndCategory(keyword: String, category: String, limit: Int = 200): List<ReplyHistoryEntity>
+
     @Query("SELECT * FROM reply_history WHERE student_question LIKE '%' || :keyword || '%' OR final_answer LIKE '%' || :keyword || '%'")
     suspend fun searchAll(keyword: String): List<ReplyHistoryEntity>
 

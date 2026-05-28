@@ -11,8 +11,10 @@ class HistoryRoutes(private val historyDao: HistoryDao) {
 
     suspend fun list(keyword: String?, category: String?): String {
         val items = when {
-            !keyword.isNullOrBlank() -> historyDao.search(keyword)
-            !category.isNullOrBlank() -> historyDao.listByCategory(category)
+            !keyword.isNullOrBlank() && !category.isNullOrBlank() ->
+                historyDao.searchByKeywordAndCategory(keyword!!, category!!)
+            !keyword.isNullOrBlank() -> historyDao.search(keyword!!)
+            !category.isNullOrBlank() -> historyDao.listByCategory(category!!)
             else -> historyDao.listRecent()
         }
         return apiJson.encodeToString(
