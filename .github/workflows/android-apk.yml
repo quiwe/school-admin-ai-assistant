@@ -51,10 +51,12 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: "platforms;android-36 build-tools;36.0.0"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -65,13 +67,16 @@ jobs:
           npm ci
           npm run build
 
-      - name: Sync Capacitor
-        working-directory: frontend
-        run: npx cap sync android
+      - name: Copy web assets to Android
+        shell: bash
+        run: |
+          mkdir -p frontend/android/app/src/main/assets/public
+          cp -r frontend/dist/* frontend/android/app/src/main/assets/public/
 
       - name: Build APK
         working-directory: frontend/android
         run: |
+          gradle wrapper --gradle-version 8.9
           ./gradlew assembleDebug --no-daemon
 
       - name: Collect APK
