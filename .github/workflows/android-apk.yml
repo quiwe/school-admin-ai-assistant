@@ -76,7 +76,7 @@ jobs:
       - name: Build APK
         working-directory: frontend/android
         run: |
-          gradle wrapper --gradle-version 8.9
+          gradle wrapper --gradle-version 8.11.1
           ./gradlew assembleDebug --no-daemon
 
       - name: Collect APK
