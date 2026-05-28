@@ -98,7 +98,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=True,
-    upx=True,
+    upx=False,
     console=False,
     icon=str(PROJECT_ROOT / "assets" / "app-icon.ico"),
     disable_windowed_traceback=False,
@@ -113,7 +113,6 @@ coll = COLLECT(
     a.binaries,
     a.datas,
     strip=True,
-    upx=True,
-    upx_exclude=["python312.dll", "python3.dll"],
+    upx=False,
     name="SchoolAdminAIAssistant",
 )
