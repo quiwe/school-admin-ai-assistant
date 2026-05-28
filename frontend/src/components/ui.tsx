@@ -70,11 +70,11 @@ export function Select({ className = "", ...props }: SelectHTMLAttributes<HTMLSe
 export function Panel({ title, children, action }: { title: string; children: ReactNode; action?: ReactNode }) {
   return (
     <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="flex min-h-12 items-center justify-between border-b border-slate-200 px-4">
+      <div className="flex min-h-12 flex-col gap-2 border-b border-slate-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-0">
         <h2 className="text-sm font-semibold text-slate-800">{title}</h2>
         {action}
       </div>
-      <div className="p-4">{children}</div>
+      <div className="p-3 sm:p-4">{children}</div>
     </section>
   );
 }

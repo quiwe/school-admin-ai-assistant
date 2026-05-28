@@ -99,9 +99,9 @@ export default function HistoryPage() {
     <Panel
       title="历史记录"
       action={
-        <div className="flex flex-wrap justify-end gap-2">
-          <Input className="w-52" placeholder="关键词" value={keyword} onChange={(event) => setKeyword(event.target.value)} />
-          <Select value={category} onChange={(event) => setCategory(event.target.value)}>
+        <div className="flex flex-wrap gap-2">
+          <Input className="w-full sm:w-40" placeholder="关键词" value={keyword} onChange={(event) => setKeyword(event.target.value)} />
+          <Select className="flex-1 sm:flex-none" value={category} onChange={(event) => setCategory(event.target.value)}>
             <option value="">全部分类</option>
             {questionCategories.map((name) => <option key={name}>{name}</option>)}
           </Select>
@@ -150,18 +150,20 @@ export default function HistoryPage() {
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{item.final_answer || item.ai_answer}</p>
               </div>
             </div>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               <Button onClick={() => navigator.clipboard.writeText(item.final_answer || item.ai_answer)}>
                 <Clipboard size={15} />
-                复制历史回复
+                <span className="hidden sm:inline">复制历史回复</span>
+                <span className="sm:hidden">复制</span>
               </Button>
               <Button onClick={() => saveAsFAQ(item)} disabled={savedFAQIds.includes(item.id)}>
                 <Star size={15} />
-                {savedFAQIds.includes(item.id) ? "已保存 FAQ" : "标记为常见问题"}
+                <span className="hidden sm:inline">{savedFAQIds.includes(item.id) ? "已保存 FAQ" : "标记为常见问题"}</span>
+                <span className="sm:hidden">FAQ</span>
               </Button>
               <Button onClick={() => removeOne(item.id)}>
                 <Trash2 size={15} />
-                删除
+                <span className="hidden sm:inline">删除</span>
               </Button>
             </div>
           </article>
