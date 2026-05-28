@@ -5,6 +5,7 @@ import com.quiwe.schooladminaiassistant.db.*
 import com.quiwe.schooladminaiassistant.models.*
 import com.quiwe.schooladminaiassistant.services.FileParser
 import com.quiwe.schooladminaiassistant.services.RagService
+import kotlinx.serialization.builtins.ListSerializer
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*

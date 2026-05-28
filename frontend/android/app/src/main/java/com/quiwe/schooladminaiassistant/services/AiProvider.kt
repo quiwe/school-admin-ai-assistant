@@ -185,7 +185,7 @@ class AiProviderService {
         if (!response.isSuccessful) throw IOException("Anthropic error ${response.code}: $responseBody")
 
         val json = Json.parseToJsonElement(responseBody).jsonObject
-        val contentArray = json["content"]?.jsonArray ?: jsonArrayOf()
+        val contentArray = json["content"]?.jsonArray ?: buildJsonArray { }
         val text = contentArray.joinToString("") { el ->
             val obj = el.jsonObject
             if (obj["type"]?.jsonPrimitive?.content == "text") obj["text"]?.jsonPrimitive?.content ?: "" else ""
@@ -226,10 +226,10 @@ class AiProviderService {
         if (!response.isSuccessful) throw IOException("Gemini error ${response.code}: $responseBody")
 
         val json = Json.parseToJsonElement(responseBody).jsonObject
-        val candidates = json["candidates"]?.jsonArray ?: jsonArrayOf()
+        val candidates = json["candidates"]?.jsonArray ?: buildJsonArray { }
         if (candidates.isEmpty()) return AiChatResult(text = "")
 
-        val parts = candidates[0].jsonObject["content"]?.jsonObject?.get("parts")?.jsonArray ?: jsonArrayOf()
+        val parts = candidates[0].jsonObject["content"]?.jsonObject?.get("parts")?.jsonArray ?: buildJsonArray { }
         val text = parts.joinToString("") { it.jsonObject["text"]?.jsonPrimitive?.content ?: "" }.trim()
 
         return AiChatResult(text = text, usage = parseUsage(json["usageMetadata"]?.jsonObject, config.model))

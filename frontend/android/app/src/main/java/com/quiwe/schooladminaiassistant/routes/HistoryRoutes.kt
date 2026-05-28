@@ -2,6 +2,7 @@ package com.quiwe.schooladminaiassistant.routes
 
 import com.quiwe.schooladminaiassistant.db.*
 import com.quiwe.schooladminaiassistant.models.*
+import kotlinx.serialization.builtins.ListSerializer
 import java.text.SimpleDateFormat
 import java.util.*
 
