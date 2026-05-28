@@ -91,6 +91,7 @@ function DesktopApp() {
   const [webClientDialogOpen, setWebClientDialogOpen] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [studentChatUrl, setStudentChatUrl] = useState("");
+  const android = isAndroidApp();
 
   useEffect(() => {
     api.checkUpdate()
@@ -181,22 +182,26 @@ function DesktopApp() {
   return (
     <div className="min-h-screen">
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-[1760px] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">高校行政 AI 回复助手</h1>
-            <p className="text-xs text-slate-500">桌面端半自动草稿生成，所有回复由老师审核后发送</p>
+        <div className="mx-auto flex w-full max-w-[1760px] items-center justify-between px-3 py-3 sm:px-6 lg:px-8">
+          <div className="min-w-0">
+            <h1 className="text-base font-semibold text-slate-900 sm:text-lg">高校行政 AI 回复助手</h1>
+            <p className="hidden text-xs text-slate-500 sm:block">{android ? "安卓独立版 — 手机端直接使用" : "桌面端半自动草稿生成，所有回复由老师审核后发送"}</p>
           </div>
-          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
-            <div className="flex max-w-[420px] min-w-0 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
-              <span className="shrink-0 text-slate-500">网页端地址</span>
-              <code className="truncate font-mono text-slate-800">{studentChatUrl || "正在生成网页端地址..."}</code>
-            </div>
-            <Button onClick={() => setWebClientDialogOpen(true)} disabled={!studentChatUrl}>
-              <ExternalLink size={16} />
-              打开网页端
-            </Button>
+          <div className="hidden min-w-0 flex-wrap items-center justify-end gap-2 sm:flex">
+            {!android && (
+              <>
+                <div className="flex max-w-[420px] min-w-0 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                  <span className="shrink-0 text-slate-500">网页端地址</span>
+                  <code className="truncate font-mono text-slate-800">{studentChatUrl || "正在生成网页端地址..."}</code>
+                </div>
+                <Button onClick={() => setWebClientDialogOpen(true)} disabled={!studentChatUrl}>
+                  <ExternalLink size={16} />
+                  打开网页端
+                </Button>
+              </>
+            )}
             <div className="rounded-md bg-blue-50 px-3 py-1 text-xs text-blue-700">
-              {isAndroidApp() ? "安卓版" : "桌面版"}
+              {android ? "安卓版" : "桌面版"}
             </div>
           </div>
         </div>
@@ -298,7 +303,7 @@ function DesktopApp() {
         </div>
       )}
       <div className="mx-auto flex w-full max-w-[1760px] gap-4 px-4 py-5 sm:px-6 lg:gap-6 lg:px-8">
-        <nav className="w-44 shrink-0 space-y-1 lg:w-48">
+        <nav className="hidden w-44 shrink-0 space-y-1 md:block lg:w-48">
           {nav.map((item) => {
             const Icon = item.icon;
             return (
@@ -317,7 +322,7 @@ function DesktopApp() {
             );
           })}
         </nav>
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1 pb-16 md:pb-0">
           <div className={page === "reply" ? "block" : "hidden"}>
             <ReplyWorkbench />
           </div>
@@ -335,6 +340,28 @@ function DesktopApp() {
           </div>
         </main>
       </div>
+
+      {/* Mobile bottom tab bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-slate-200 bg-white md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        {nav.map((item) => {
+          const Icon = item.icon;
+          const active = page === item.key;
+          return (
+            <button
+              key={item.key}
+              onClick={() => {
+                setPage(item.key);
+                if (item.key === "faq") window.dispatchEvent(new Event("app:show-faq"));
+                if (item.key === "history") window.dispatchEvent(new Event("app:show-history"));
+              }}
+              className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition ${active ? "text-blue-600" : "text-slate-500"}`}
+            >
+              <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
+              <span className={active ? "font-semibold" : ""}>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }
