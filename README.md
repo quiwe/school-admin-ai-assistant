@@ -1,6 +1,6 @@
 # 高校行政 AI 回复助手
 
-一个面向高校行政老师的 Windows 桌面端助手，用于把学生微信咨询粘贴到软件中，基于本地知识库和 FAQ 生成可人工审核的回复草稿。当前版本不接入微信、企业微信、公众号，也不模拟微信窗口。
+一个面向高校行政老师的桌面端助手，用于把学生咨询整理为基于本地知识库和 FAQ 的可审核回复草稿。支持 Windows、macOS 打包，Android APK 可通过局域网连接桌面端服务；当前版本支持学生网页端、QQ Bot 和企业微信机器人，不接入个人微信，也不模拟微信窗口。
 
 ## 功能说明
 
@@ -11,6 +11,8 @@
 - 系统设置：在页面中配置和测试常用大模型 API，包括 OpenAI、Claude、Gemini、DeepSeek、通义千问、智谱 GLM、Kimi、豆包、腾讯混元、硅基流动、MiniMax、Mistral、Cohere、华为云盘古、小米 MiMo、OpenRouter、Ollama、LM Studio 和自定义 OpenAI 兼容接口。
 - 数据备份：支持导出和导入 FAQ、知识库解析文本、历史记录和非密钥设置，API Key 不会写入备份。
 - 桌面更新：启动时检查 GitHub Release，新版本可在软件内下载并启动安装包；0.3.0 起支持远程最低版本策略。
+- 开机自启动：Windows/macOS 安装版默认随系统启动，可在系统设置中取消。
+- Android APK：可通过局域网连接老师电脑上的桌面端服务，使用同一套知识库、FAQ、历史记录和设置。
 - 安全控制：成绩、处分、奖助学金结果、学籍状态、个人隐私、投诉申诉、情绪危机等问题强制提示人工核实。
 
 ## 本地启动
@@ -68,7 +70,9 @@ docker compose up --build
 D:\SchoolAdminAIAssistant
 ```
 
-安装后会生成开始菜单快捷方式，可选创建桌面快捷方式。启动后会打开 Windows 桌面窗口，不再跳转到默认浏览器；后台服务只监听本机地址。数据默认保存在安装目录下的 `data` 文件夹中，避免默认写入 C 盘。
+安装后会生成开始菜单快捷方式，可选创建桌面快捷方式。启动后会打开 Windows 桌面窗口，不再跳转到默认浏览器；后台服务监听本机和局域网地址。数据默认保存在安装目录下的 `data` 文件夹中，避免默认写入 C 盘。
+
+安装版默认开机自启动。老师可进入“系统设置 - 开机自启动”取消，软件会删除当前用户的系统启动项。
 
 桌面版依赖 Microsoft Edge WebView2 Runtime。Windows 10/11 通常已自带；Release 安装包会自动检测，如果目标电脑没有 WebView2，会使用安装包内置的 WebView2 Runtime 安装器自动静默安装。
 
@@ -94,6 +98,25 @@ https://developer.microsoft.com/microsoft-edge/webview2/
 - GitHub Release：把 `.dmg` 上传到 `v版本号` Release 附件。
 
 macOS 版本暂未签名，首次打开可能需要在系统设置中允许。
+
+macOS 安装版首次运行后会创建当前用户的 LaunchAgent，实现开机自启动；可在“系统设置 - 开机自启动”关闭。
+
+## Android APK 在线打包
+
+仓库内置 GitHub Actions：`.github/workflows/android-apk.yml`。
+
+触发方式：
+
+- 确认发布时在 GitHub 仓库页面进入 `Actions`，手动运行 `Build Android APK`。
+- 打包任务会读取 `VERSION`、`DEVELOPER` 和 `CHANGELOG.md`，并创建或更新对应版本的 GitHub Release。
+
+打包产物：
+
+- Artifact 名称：`SchoolAdminAIAssistant-Android-v版本号`
+- APK 文件：`SchoolAdminAIAssistant-Android-v版本号.apk`
+- GitHub Release：把 `.apk` 上传到 `v版本号` Release 附件。
+
+Android APK 通过局域网连接桌面端服务。老师先在桌面端打开“系统设置 - 移动端 / APK 连接”，复制完整管理地址；Android 首次打开时粘贴该地址，即可使用同一套知识库、FAQ、历史记录和模型配置。
 
 ## 国内更新源
 
@@ -185,6 +208,7 @@ API Key 不要写入代码或提交到仓库。
 - 老师电脑需要和学生设备处在同一局域网，且系统防火墙允许当前端口访问。
 - 网页端地址中的访问码用于限制学生入口，请不要把地址公开到无关群组或公网。
 - 局域网远程访问只开放学生网页端和学生回复接口，知识库、FAQ、设置、历史等管理功能仍限制为老师电脑本机使用。
+- Android APK 使用独立的管理访问码连接完整管理功能，请只发给需要管理权限的老师本人。
 
 ## AI Provider 切换
 

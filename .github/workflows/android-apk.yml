@@ -1,0 +1,107 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load release metadata
+        shell: bash
+        run: |
+          version="$(tr -d '\r\n' < VERSION)"
+          developer="$(tr -d '\r\n' < DEVELOPER)"
+          tag="v${version}"
+          apk="SchoolAdminAIAssistant-Android-v${version}.apk"
+          python3 - <<'PY'
+          import os, re, pathlib
+          version = pathlib.Path("VERSION").read_text(encoding="utf-8").strip()
+          developer = pathlib.Path("DEVELOPER").read_text(encoding="utf-8").strip()
+          changelog = pathlib.Path("CHANGELOG.md").read_text(encoding="utf-8")
+          match = re.search(rf"(?ms)^##\s+{re.escape(version)}\s+-.*?(?=^##\s+|\Z)", changelog)
+          notes = match.group(0).strip() if match else f"Version {version}\n\n{changelog}"
+          notes = f"{notes}\n\n开发者：{developer}\n安卓独立版 — 无需电脑即可使用，所有功能（AI回复、知识库、FAQ）均在手机端本地运行。配置好 AI 提供商后即可直接生成回复。"
+          path = pathlib.Path(os.environ["RUNNER_TEMP"]) / "release-notes.md"
+          path.write_text(notes, encoding="utf-8")
+          print(f"RELEASE_NOTES_PATH={path}", file=open(os.environ["GITHUB_ENV"], "a", encoding="utf-8"))
+          PY
+          {
+            echo "APP_VERSION=${version}"
+            echo "APP_DEVELOPER=${developer}"
+            echo "RELEASE_TAG=${tag}"
+            echo "APK_NAME=${apk}"
+          } >> "$GITHUB_ENV"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build web assets
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Sync Capacitor
+        working-directory: frontend
+        run: npx cap sync android
+
+      - name: Build APK
+        working-directory: frontend/android
+        run: |
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Collect APK
+        shell: bash
+        run: |
+          APK_PATH="frontend/android/app/build/outputs/apk/debug/app-debug.apk"
+          DEST="frontend/dist/${APK_NAME}"
+          cp "$APK_PATH" "$DEST"
+          echo "APK_PATH=${DEST}" >> "$GITHUB_ENV"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SchoolAdminAIAssistant-Android-v${{ env.APP_VERSION }}
+          path: ${{ env.APK_PATH }}
+
+      - name: Publish APK asset to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="$RELEASE_TAG"
+          title="高校行政AI回复助手 $APP_VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f "$tag" "$GITHUB_SHA"
+          git push origin "refs/tags/$tag" --force
+          guide="docs/使用教程.pdf"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" --title "$title" --notes-file "$RELEASE_NOTES_PATH" --latest
+          else
+            gh release create "$tag" "$guide" --title "$title" --notes-file "$RELEASE_NOTES_PATH" --latest
+          fi
+          gh release upload "$tag" "$APK_PATH" "$guide" --clobber

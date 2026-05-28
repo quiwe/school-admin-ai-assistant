@@ -48,7 +48,10 @@ def configure_runtime(root: Path, port: int) -> None:
     upload_dir = data_dir / "uploads"
     upload_dir.mkdir(parents=True, exist_ok=True)
     access_key = student_access_key(data_dir)
-    student_url = f"http://{local_network_ip()}:{port}/student-chat?access_key={quote(access_key)}"
+    admin_key = admin_access_key(data_dir)
+    lan_base_url = f"http://{local_network_ip()}:{port}"
+    student_url = f"{lan_base_url}/student-chat?access_key={quote(access_key)}"
+    admin_url = f"{lan_base_url}/?admin_key={quote(admin_key)}"
 
     for path in [root / "backend", *resource_roots(root)]:
         if path.exists() and str(path) not in sys.path:
@@ -56,9 +59,20 @@ def configure_runtime(root: Path, port: int) -> None:
 
     os.environ["DATABASE_URL"] = sqlite_url(data_dir / "app.db")
     os.environ["UPLOAD_DIR"] = str(upload_dir)
-    os.environ["CORS_ORIGINS"] = f"http://127.0.0.1:{port},http://localhost:{port},{student_url.rsplit('/student-chat', 1)[0]}"
+    os.environ["CORS_ORIGINS"] = ",".join(
+        [
+            f"http://127.0.0.1:{port}",
+            f"http://localhost:{port}",
+            lan_base_url,
+            "https://localhost",
+            "http://localhost",
+            "capacitor://localhost",
+        ]
+    )
     os.environ["STUDENT_ACCESS_KEY"] = access_key
     os.environ["STUDENT_CHAT_URL"] = student_url
+    os.environ["ADMIN_ACCESS_KEY"] = admin_key
+    os.environ["ADMIN_WEB_URL"] = admin_url
     os.chdir(root)
 
 
@@ -69,7 +83,14 @@ def data_root(root: Path) -> Path:
 
 
 def student_access_key(data_dir: Path) -> str:
-    path = data_dir / "student_access_key.txt"
+    return persistent_secret(data_dir / "student_access_key.txt")
+
+
+def admin_access_key(data_dir: Path) -> str:
+    return persistent_secret(data_dir / "admin_access_key.txt")
+
+
+def persistent_secret(path: Path) -> str:
     if path.exists():
         value = path.read_text(encoding="utf-8").strip()
         if value:

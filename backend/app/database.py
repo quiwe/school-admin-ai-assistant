@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from .settings import settings
@@ -14,6 +14,23 @@ connect_args = {"check_same_thread": False} if settings.database_url.startswith(
 engine = create_engine(settings.database_url, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+
+def _migrate():
+    """Add missing columns for existing SQLite databases (create_all won't ALTER)."""
+    inspector = inspect(engine)
+    if "reply_history" not in inspector.get_table_names():
+        return
+    existing = {col["name"] for col in inspector.get_columns("reply_history")}
+    with engine.connect() as conn:
+        if "cost_cny" not in existing:
+            conn.execute(text("ALTER TABLE reply_history ADD COLUMN cost_cny FLOAT"))
+        if "cost_usd" not in existing:
+            conn.execute(text("ALTER TABLE reply_history ADD COLUMN cost_usd FLOAT"))
+        conn.commit()
+
+
+_migrate()
 
 
 def get_db():

@@ -30,6 +30,8 @@ def generate_student_reply(
         category=result.category,
         confidence=result.confidence,
         need_human_review=result.need_human_review,
+        cost_cny=result.cost_cny,
+        cost_usd=result.cost_usd,
     )
     db.add(history)
     db.commit()

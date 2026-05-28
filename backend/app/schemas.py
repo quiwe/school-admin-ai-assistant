@@ -107,6 +107,8 @@ class HistoryCreate(BaseModel):
     category: str = "其他"
     confidence: float = 0.0
     need_human_review: bool = False
+    cost_cny: float | None = None
+    cost_usd: float | None = None
 
 
 class HistoryRead(BaseModel):
@@ -117,6 +119,8 @@ class HistoryRead(BaseModel):
     category: str
     confidence: float
     need_human_review: bool
+    cost_cny: float | None = None
+    cost_usd: float | None = None
     created_at: datetime
 
     class Config:
@@ -205,6 +209,21 @@ class QQSettingsUpdate(BaseModel):
     allowlist: list[str] = Field(default_factory=list)
 
 
+class WeComSettingsRead(BaseModel):
+    enabled: bool = False
+    bot_id: str = ""
+    secret_configured: bool = False
+    allowlist: list[str] = Field(default_factory=list)
+    running: bool = False
+
+
+class WeComSettingsUpdate(BaseModel):
+    enabled: bool = False
+    bot_id: str = ""
+    secret: str | None = None
+    allowlist: list[str] = Field(default_factory=list)
+
+
 class BackupImportResponse(BaseModel):
     ok: bool
     imported_faq: int = 0
@@ -251,3 +270,31 @@ class UpdateInstallResponse(BaseModel):
 
 class StudentLinkResponse(BaseModel):
     url: str
+
+
+class AdminLinkResponse(BaseModel):
+    url: str
+    api_base: str
+    admin_access_key: str
+
+
+class CostStatsResponse(BaseModel):
+    total_spent_cny: float = 0.0
+    monthly_budget_cny: float | None = None
+    remaining_cny: float | None = None
+
+
+class BudgetRequest(BaseModel):
+    monthly_budget_cny: float | None = None
+
+
+class AutoStartSettingsRead(BaseModel):
+    enabled: bool = True
+    current_enabled: bool = False
+    supported: bool = False
+    target_path: str = ""
+    message: str = ""
+
+
+class AutoStartSettingsUpdate(BaseModel):
+    enabled: bool = True

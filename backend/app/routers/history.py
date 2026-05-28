@@ -28,7 +28,12 @@ def list_history(keyword: str | None = None, category: str | None = None, db: Se
 
 @router.post("/create", response_model=HistoryRead)
 def create_history(payload: HistoryCreate, db: Session = Depends(get_db)):
-    item = ReplyHistory(**payload.model_dump())
+    data = payload.model_dump()
+    if data.get("cost_cny") is None:
+        data.pop("cost_cny", None)
+    if data.get("cost_usd") is None:
+        data.pop("cost_usd", None)
+    item = ReplyHistory(**data)
     db.add(item)
     db.commit()
     db.refresh(item)

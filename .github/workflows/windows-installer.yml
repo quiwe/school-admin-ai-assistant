@@ -105,6 +105,7 @@ jobs:
         run: |
           $tag = $env:RELEASE_TAG
           $asset = $env:INSTALLER_PATH
+          $guide = "docs/使用教程.pdf"
           $title = "高校行政AI回复助手 $env:APP_VERSION"
 
           git config user.name "github-actions[bot]"
@@ -115,7 +116,7 @@ jobs:
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
             gh release edit $tag --title $title --notes-file $env:RELEASE_NOTES_PATH --latest
-            gh release upload $tag $asset --clobber
+            gh release upload $tag $asset $guide --clobber
           } else {
-            gh release create $tag $asset --title $title --notes-file $env:RELEASE_NOTES_PATH --latest
+            gh release create $tag $asset $guide --title $title --notes-file $env:RELEASE_NOTES_PATH --latest
           }

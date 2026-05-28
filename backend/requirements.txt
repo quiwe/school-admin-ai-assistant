@@ -1,5 +1,5 @@
 fastapi==0.115.6
-uvicorn[standard]==0.34.0
+uvicorn==0.34.0
 sqlalchemy==2.0.36
 pydantic-settings==2.7.1
 python-dotenv==1.0.1
@@ -14,3 +14,4 @@ xlrd==2.0.1
 olefile==0.47
 pywebview==5.4
 websockets==14.1
+wecom-aibot-python-sdk==1.0.2

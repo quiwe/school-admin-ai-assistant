@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -144,6 +145,14 @@ class QQBotService:
                         logger.info("QQ bot is online.")
                     elif event_type == "C2C_MESSAGE_CREATE":
                         await self._handle_private_message(config, data)
+                    elif event_type == "GROUP_AT_MESSAGE_CREATE":
+                        await self._handle_group_at_message(config, data)
+                    elif event_type == "GROUP_ADD_ROBOT":
+                        logger.info("QQ bot added to group: %s", data.get("group_openid", ""))
+                    elif event_type == "GROUP_DEL_ROBOT":
+                        logger.info("QQ bot removed from group: %s", data.get("group_openid", ""))
+                    elif event_type in {"GROUP_MSG_REJECT", "GROUP_MSG_RECEIVE"}:
+                        logger.info("QQ group message setting changed: %s", event_type)
                 elif op == 7:
                     break
                 elif op == 9:
@@ -191,7 +200,8 @@ class QQBotService:
         if message_id and not self._remember_message(message_id):
             return
         content = str(data.get("content") or "").strip()
-        openid = str((data.get("author") or {}).get("user_openid") or "").strip()
+        author = data.get("author") or {}
+        openid = str(author.get("member_openid") or author.get("user_openid") or "").strip()
         if not content or not openid or not self._can_access(config, openid):
             return
         answer = await asyncio.to_thread(self._generate_answer, content)
@@ -205,16 +215,24 @@ class QQBotService:
             self._processed_ids.pop(0)
         return True
 
-    def _can_access(self, config: QQConfig, openid: str) -> bool:
+    def _can_access(
+        self,
+        config: QQConfig,
+        openid: str,
+        *,
+        allow_auto_bind: bool = True,
+        respect_runtime_bind: bool = True,
+    ) -> bool:
         owner = normalize_openid(config.owner_openid)
         allowlist = normalize_allowlist(config.allowlist)
         if owner:
             return openid == owner or openid in allowlist
         if allowlist:
             return openid in allowlist
-        if self._runtime_bound_openid:
+        if respect_runtime_bind and self._runtime_bound_openid:
             return openid == self._runtime_bound_openid
-        self._runtime_bound_openid = openid
+        if allow_auto_bind:
+            self._runtime_bound_openid = openid
         return True
 
     def _generate_answer(self, question: str) -> str:
@@ -231,6 +249,24 @@ class QQBotService:
             db.add(history)
             db.commit()
             return result.answer
+
+    async def _handle_group_at_message(self, config: QQConfig, data: dict[str, Any]) -> None:
+        message_id = str(data.get("id") or "")
+        if message_id and not self._remember_message(message_id):
+            return
+        raw_content = str(data.get("content") or "").strip()
+        group_openid = str(data.get("group_openid") or "").strip()
+        author = data.get("author") or {}
+        openid = str(author.get("member_openid") or author.get("user_openid") or "").strip()
+        if not raw_content or not group_openid or not openid:
+            return
+        if not self._can_access(config, openid, allow_auto_bind=False, respect_runtime_bind=False):
+            return
+        content = _strip_at_mention(raw_content)
+        if not content:
+            return
+        answer = await asyncio.to_thread(self._generate_answer, content)
+        await self._send_group_message(config, group_openid, QQMessage(openid, answer, message_id))
 
     async def _send_private_message(self, config: QQConfig, message: QQMessage) -> None:
         token = await self._ensure_token(config)
@@ -251,6 +287,35 @@ class QQBotService:
                     json=body,
                 )
                 response.raise_for_status()
+
+    async def _send_group_message(
+        self, config: QQConfig, group_openid: str, message: QQMessage
+    ) -> None:
+        token = await self._ensure_token(config)
+        chunks = split_message(message.content)
+        async with httpx.AsyncClient(timeout=30) as client:
+            for seq, chunk in enumerate(chunks, start=1):
+                body: dict[str, Any] = {"content": chunk, "msg_type": 0}
+                if message.message_id:
+                    body["msg_id"] = message.message_id
+                    body["msg_seq"] = seq
+                response = await client.post(
+                    f"{self._base_url}/v2/groups/{group_openid}/messages",
+                    headers={
+                        "Authorization": f"QQBot {token}",
+                        "Content-Type": "application/json",
+                        "X-Union-Appid": config.app_id,
+                    },
+                    json=body,
+                )
+                response.raise_for_status()
+
+
+_AT_MENTION_RE = re.compile(r"<@!?\d+>")
+
+
+def _strip_at_mention(text: str) -> str:
+    return _AT_MENTION_RE.sub("", text).strip()
 
 
 def split_message(text: str, max_bytes: int = MAX_MESSAGE_BYTES) -> list[str]:

@@ -109,10 +109,11 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -f "$tag" "$GITHUB_SHA"
           git push origin "refs/tags/$tag" --force
+          guide="docs/使用教程.pdf"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release edit "$tag" --title "$title" --notes-file "$RELEASE_NOTES_PATH" --latest
           else
-            gh release create "$tag" --title "$title" --notes-file "$RELEASE_NOTES_PATH" --latest
+            gh release create "$tag" "$guide" --title "$title" --notes-file "$RELEASE_NOTES_PATH" --latest
           fi
           gh release delete-asset "$tag" "SchoolAdminAIAssistant-macOS-v${APP_VERSION}.zip" -y >/dev/null 2>&1 || true
-          gh release upload "$tag" "$ARCHIVE_PATH" --clobber
+          gh release upload "$tag" "$ARCHIVE_PATH" "$guide" --clobber

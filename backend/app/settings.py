@@ -23,6 +23,8 @@ class AppSettings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     student_access_key: str | None = None
     student_chat_url: str | None = None
+    admin_access_key: str | None = None
+    admin_web_url: str | None = None
     qq_enabled: bool = False
     qq_appid: str | None = None
     qq_secret: str | None = None

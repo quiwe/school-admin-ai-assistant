@@ -54,7 +54,7 @@ class AIProvider:
         )
         return self._chat(user_prompt, config)
 
-    def rewrite_reply(self, question: str, answer: str, style: str, config: AIConfig | None = None) -> str:
+    def rewrite_reply(self, question: str, answer: str, style: str, config: AIConfig | None = None) -> AIChatResult:
         style_map = {
             "formal": "更正式一点，但不要生硬。",
             "shorter": "更简短一点，保留关键信息。",
@@ -65,7 +65,7 @@ class AIProvider:
             f"改写要求：{style_map.get(style, style)}\n"
             "请只输出改写后的微信回复，不要添加解释。"
         )
-        return self._chat(user_prompt, config).text
+        return self._chat(user_prompt, config)
 
     def _chat(self, user_prompt: str, config: AIConfig | None = None) -> AIChatResult:
         config = config or AIConfig(

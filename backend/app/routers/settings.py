@@ -1,9 +1,11 @@
 import time
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..models import ReplyHistory, Setting
 from ..schemas import (
     AIModelListRequest,
     AIModelListResponse,
@@ -11,13 +13,23 @@ from ..schemas import (
     AIProviderTestResponse,
     AISettingsRead,
     AISettingsUpdate,
+    AutoStartSettingsRead,
+    AutoStartSettingsUpdate,
+    BudgetRequest,
+    CostStatsResponse,
     QQSettingsRead,
     QQSettingsUpdate,
+    WeComSettingsRead,
+    WeComSettingsUpdate,
 )
+from ..services.autostart import get_status as get_autostart_status
+from ..services.autostart import set_preference_and_apply
 from ..services.ai_provider import ai_provider
 from ..services.model_discovery import ModelDiscoveryError, discover_models
 from ..services.qq_bot import qq_bot_service
 from ..services.qq_config import load_qq_config, save_qq_config
+from ..services.wecom_bot import wecom_bot_service
+from ..services.wecom_config import load_wecom_config, save_wecom_config
 from ..services.runtime_config import (
     AIConfig,
     PROVIDER_MAP,
@@ -115,3 +127,74 @@ async def update_qq_settings(payload: QQSettingsUpdate, db: Session = Depends(ge
         allowlist=config.allowlist or [],
         running=qq_bot_service.is_running(),
     )
+
+
+@router.get("/wecom", response_model=WeComSettingsRead)
+def read_wecom_settings(db: Session = Depends(get_db)):
+    config = load_wecom_config(db)
+    return WeComSettingsRead(
+        enabled=config.enabled,
+        bot_id=config.bot_id,
+        secret_configured=config.secret_configured,
+        allowlist=config.allowlist or [],
+        running=wecom_bot_service.is_running(),
+    )
+
+
+@router.put("/wecom", response_model=WeComSettingsRead)
+async def update_wecom_settings(payload: WeComSettingsUpdate, db: Session = Depends(get_db)):
+    config = save_wecom_config(
+        db,
+        enabled=payload.enabled,
+        bot_id=payload.bot_id,
+        secret=payload.secret,
+        allowlist=payload.allowlist,
+    )
+    wecom_bot_service.apply_saved_config()
+    return WeComSettingsRead(
+        enabled=config.enabled,
+        bot_id=config.bot_id,
+        secret_configured=config.secret_configured,
+        allowlist=config.allowlist or [],
+        running=wecom_bot_service.is_running(),
+    )
+
+
+@router.get("/cost-stats", response_model=CostStatsResponse)
+def get_cost_stats(db: Session = Depends(get_db)):
+    total = db.query(func.coalesce(func.sum(ReplyHistory.cost_cny), 0.0)).scalar() or 0.0
+    budget_row = db.query(Setting).filter(Setting.key == "monthly_budget_cny").first()
+    budget = float(budget_row.value) if budget_row and budget_row.value else None
+    remaining = round(budget - total, 4) if budget is not None else None
+    return CostStatsResponse(
+        total_spent_cny=round(total, 4),
+        monthly_budget_cny=budget,
+        remaining_cny=remaining,
+    )
+
+
+@router.put("/budget")
+def update_budget(payload: BudgetRequest, db: Session = Depends(get_db)):
+    row = db.query(Setting).filter(Setting.key == "monthly_budget_cny").first()
+    if payload.monthly_budget_cny is None:
+        if row:
+            db.delete(row)
+            db.commit()
+    else:
+        value = str(payload.monthly_budget_cny)
+        if row:
+            row.value = value
+        else:
+            db.add(Setting(key="monthly_budget_cny", value=value))
+        db.commit()
+    return {"monthly_budget_cny": payload.monthly_budget_cny}
+
+
+@router.get("/autostart", response_model=AutoStartSettingsRead)
+def read_autostart_settings(db: Session = Depends(get_db)):
+    return get_autostart_status(db).__dict__
+
+
+@router.put("/autostart", response_model=AutoStartSettingsRead)
+def update_autostart_settings(payload: AutoStartSettingsUpdate, db: Session = Depends(get_db)):
+    return set_preference_and_apply(db, payload.enabled).__dict__

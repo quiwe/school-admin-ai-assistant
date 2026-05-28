@@ -56,6 +56,8 @@ class ReplyHistory(Base):
     category: Mapped[str] = mapped_column(String(50), default="其他", index=True)
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
     need_human_review: Mapped[bool] = mapped_column(Boolean, default=False)
+    cost_cny: Mapped[float | None] = mapped_column(Float, nullable=True, default=None)
+    cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

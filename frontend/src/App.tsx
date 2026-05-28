@@ -1,7 +1,15 @@
-import { BookOpen, Check, ClipboardList, Copy, Download, ExternalLink, History, MessageSquareText, Settings, X } from "lucide-react";
+import { BookOpen, Check, ClipboardList, Copy, Download, ExternalLink, History, Link2, MessageSquareText, Settings, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { api, UpdateCheckResponse, UpdateProgressResponse } from "./api/client";
-import { Button, PrimaryButton } from "./components/ui";
+import {
+  api,
+  getRuntimeApiBase,
+  isAndroidApp,
+  parseAdminConnectionUrl,
+  saveRuntimeConnection,
+  UpdateCheckResponse,
+  UpdateProgressResponse
+} from "./api/client";
+import { Button, Input, PrimaryButton } from "./components/ui";
 import FAQManager from "./pages/FAQManager";
 import HistoryPage from "./pages/History";
 import KnowledgeBase from "./pages/KnowledgeBase";
@@ -22,7 +30,55 @@ export default function App() {
   if (pathname === "/student-chat") {
     return <StudentChat />;
   }
+  if (isAndroidApp() && !getRuntimeApiBase()) {
+    return <AndroidConnectionSetup />;
+  }
   return <DesktopApp />;
+}
+
+function AndroidConnectionSetup() {
+  const [connectionUrl, setConnectionUrl] = useState("");
+  const [error, setError] = useState("");
+
+  function saveConnection() {
+    const parsed = parseAdminConnectionUrl(connectionUrl);
+    if (!parsed.apiBase || !parsed.adminAccessKey) {
+      setError("请填写桌面端系统设置中显示的完整管理地址。");
+      return;
+    }
+    saveRuntimeConnection(parsed.apiBase, parsed.adminAccessKey);
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-5">
+      <section className="w-full max-w-lg rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-600 text-white">
+            <Link2 size={20} />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-slate-900">连接桌面端</h1>
+            <p className="text-xs text-slate-500">填写老师电脑生成的完整管理地址</p>
+          </div>
+        </div>
+        <label className="mt-5 block space-y-1 text-sm">
+          <span className="font-medium text-slate-700">完整管理地址</span>
+          <Input
+            placeholder="http://192.168.x.x:8765/?admin_key=..."
+            value={connectionUrl}
+            onChange={(event) => {
+              setConnectionUrl(event.target.value);
+              setError("");
+            }}
+          />
+        </label>
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        <div className="mt-5 flex justify-end">
+          <PrimaryButton onClick={saveConnection}>保存并进入</PrimaryButton>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function DesktopApp() {
@@ -139,7 +195,9 @@ function DesktopApp() {
               <ExternalLink size={16} />
               打开网页端
             </Button>
-            <div className="rounded-md bg-blue-50 px-3 py-1 text-xs text-blue-700">桌面版</div>
+            <div className="rounded-md bg-blue-50 px-3 py-1 text-xs text-blue-700">
+              {isAndroidApp() ? "安卓版" : "桌面版"}
+            </div>
           </div>
         </div>
       </header>

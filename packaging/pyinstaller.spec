@@ -15,7 +15,6 @@ for package in [
     "starlette",
     "pydantic",
     "pydantic_settings",
-    "sqlalchemy",
     "openai",
     "httpx",
     "docx",
@@ -24,10 +23,23 @@ for package in [
     "openpyxl",
     "xlrd",
     "olefile",
-    "clr_loader",
-    "pythonnet",
 ]:
     hiddenimports += collect_submodules(package)
+
+# sqlalchemy — only keep the sqlite dialect, drop mysql/pg/oracle/mssql
+_hidden_sqlalchemy = collect_submodules("sqlalchemy")
+hiddenimports += [
+    m for m in _hidden_sqlalchemy
+    if not m.startswith("sqlalchemy.dialects.") or "sqlite" in m
+]
+
+# pythonnet / clr_loader — targeted imports for WinForms WebView2, not full collect
+hiddenimports += [
+    "clr",
+    "clr_loader",
+    "pythonnet",
+    "pythonnet.runtime",
+]
 
 hiddenimports += [
     "webview",
@@ -85,7 +97,7 @@ exe = EXE(
     name="SchoolAdminAIAssistant",
     debug=False,
     bootloader_ignore_signals=False,
-    strip=False,
+    strip=True,
     upx=True,
     console=False,
     icon=str(PROJECT_ROOT / "assets" / "app-icon.ico"),
@@ -100,7 +112,7 @@ coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
-    strip=False,
+    strip=True,
     upx=True,
     upx_exclude=[],
     name="SchoolAdminAIAssistant",

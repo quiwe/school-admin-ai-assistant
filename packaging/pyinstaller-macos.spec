@@ -15,7 +15,6 @@ for package in [
     "starlette",
     "pydantic",
     "pydantic_settings",
-    "sqlalchemy",
     "openai",
     "httpx",
     "docx",
@@ -26,6 +25,13 @@ for package in [
     "olefile",
 ]:
     hiddenimports += collect_submodules(package)
+
+# sqlalchemy — only keep the sqlite dialect, drop mysql/pg/oracle/mssql
+_hidden_sqlalchemy = collect_submodules("sqlalchemy")
+hiddenimports += [
+    m for m in _hidden_sqlalchemy
+    if not m.startswith("sqlalchemy.dialects.") or "sqlite" in m
+]
 
 hiddenimports += [
     "webview",
@@ -83,7 +89,7 @@ exe = EXE(
     name="SchoolAdminAIAssistant",
     debug=False,
     bootloader_ignore_signals=False,
-    strip=False,
+    strip=True,
     upx=False,
     console=False,
     disable_windowed_traceback=False,
@@ -97,7 +103,7 @@ coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
-    strip=False,
+    strip=True,
     upx=False,
     upx_exclude=[],
     name="SchoolAdminAIAssistant",

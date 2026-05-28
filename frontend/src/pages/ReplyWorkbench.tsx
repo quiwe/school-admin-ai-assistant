@@ -1,6 +1,6 @@
 import { AlertCircle, Check, Clipboard, Eraser, RefreshCw, Save, Wand2 } from "lucide-react";
-import { useState } from "react";
-import { api, Reference, ReplyResponse } from "../api/client";
+import { useEffect, useState } from "react";
+import { api, CostStats, Reference, ReplyResponse } from "../api/client";
 import { Button, Panel, PrimaryButton, Textarea } from "../components/ui";
 
 export default function ReplyWorkbench() {
@@ -11,6 +11,20 @@ export default function ReplyWorkbench() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const [faqMessage, setFAQMessage] = useState("");
+  const [costStats, setCostStats] = useState<CostStats | null>(null);
+
+  async function fetchCostStats() {
+    try {
+      const stats = await api.getCostStats();
+      setCostStats(stats);
+    } catch {
+      // 静默失败，不影响主流程
+    }
+  }
+
+  useEffect(() => {
+    fetchCostStats();
+  }, []);
 
   async function generate(style = "normal") {
     if (!question.trim()) return;
@@ -43,8 +57,11 @@ export default function ReplyWorkbench() {
         final_answer: data.answer,
         category: data.category,
         confidence: data.confidence,
-        need_human_review: data.need_human_review
+        need_human_review: data.need_human_review,
+        cost_cny: data.cost_cny,
+        cost_usd: data.cost_usd
       });
+      fetchCostStats();
       window.dispatchEvent(new Event("history:changed"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "生成失败");
@@ -60,6 +77,21 @@ export default function ReplyWorkbench() {
     try {
       const data = await api.rewriteReply(question, answer, style);
       setAnswer(data.answer);
+      // 记录改写费用
+      if (data.ai_used && typeof data.cost_cny === "number") {
+        await api.createHistory({
+          student_question: question,
+          ai_answer: data.answer,
+          final_answer: data.answer,
+          category: meta?.category || "其他",
+          confidence: meta?.confidence || 0,
+          need_human_review: meta?.need_human_review || false,
+          cost_cny: data.cost_cny,
+          cost_usd: data.cost_usd
+        });
+        fetchCostStats();
+        window.dispatchEvent(new Event("history:changed"));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "改写失败");
     } finally {
@@ -146,6 +178,16 @@ export default function ReplyWorkbench() {
                 ) : null}
                 {typeof meta.cost_cny === "number" ? (
                   <span className="text-blue-700">本次 ¥{meta.cost_cny.toFixed(4)}</span>
+                ) : null}
+                {costStats ? (
+                  <span className="text-slate-500">
+                    累计 ¥{costStats.total_spent_cny.toFixed(4)}
+                    {costStats.monthly_budget_cny != null ? (
+                      <span className={costStats.remaining_cny != null && costStats.remaining_cny < 0 ? "text-red-600 ml-1" : "text-emerald-600 ml-1"}>
+                        剩余 ¥{costStats.remaining_cny?.toFixed(2)}
+                      </span>
+                    ) : null}
+                  </span>
                 ) : null}
               </div>
             ) : null

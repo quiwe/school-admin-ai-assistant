@@ -1,10 +1,75 @@
 export const API_BASE = import.meta.env.VITE_API_BASE || "";
+export const API_BASE_STORAGE_KEY = "school-admin-ai-api-base";
+export const ADMIN_ACCESS_KEY_STORAGE_KEY = "school-admin-ai-admin-access-key";
+
+function normalizeApiBase(value: string) {
+  return value.trim().replace(/\/+$/, "");
+}
+
+export function getRuntimeApiBase() {
+  if (API_BASE) return normalizeApiBase(API_BASE);
+  const stored = normalizeApiBase(window.localStorage.getItem(API_BASE_STORAGE_KEY) || "");
+  if (stored) return stored;
+  if (isAndroidApp()) return "http://localhost:8765";
+  return "";
+}
+
+export function getRuntimeAdminAccessKey() {
+  return window.localStorage.getItem(ADMIN_ACCESS_KEY_STORAGE_KEY) || "";
+}
+
+export function saveRuntimeConnection(apiBase: string, adminAccessKey: string) {
+  const normalizedApiBase = normalizeApiBase(apiBase);
+  if (normalizedApiBase) {
+    window.localStorage.setItem(API_BASE_STORAGE_KEY, normalizedApiBase);
+  } else {
+    window.localStorage.removeItem(API_BASE_STORAGE_KEY);
+  }
+  if (adminAccessKey.trim()) {
+    window.localStorage.setItem(ADMIN_ACCESS_KEY_STORAGE_KEY, adminAccessKey.trim());
+  } else {
+    window.localStorage.removeItem(ADMIN_ACCESS_KEY_STORAGE_KEY);
+  }
+  window.dispatchEvent(new Event("app:api-connection-changed"));
+}
+
+export function parseAdminConnectionUrl(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return { apiBase: "", adminAccessKey: "" };
+  try {
+    const url = new URL(trimmed);
+    return {
+      apiBase: `${url.protocol}//${url.host}`,
+      adminAccessKey: url.searchParams.get("admin_key") || ""
+    };
+  } catch {
+    return { apiBase: normalizeApiBase(trimmed), adminAccessKey: "" };
+  }
+}
+
+export function isAndroidApp() {
+  const capacitor = (window as unknown as { Capacitor?: { getPlatform?: () => string } }).Capacitor;
+  return capacitor?.getPlatform?.() === "android";
+}
+
+function buildUrl(path: string) {
+  return `${getRuntimeApiBase()}${path}`;
+}
+
+function buildHeaders(options?: RequestInit) {
+  const headers = new Headers(options?.headers);
+  if (!(options?.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+  const adminAccessKey = getRuntimeAdminAccessKey();
+  if (adminAccessKey && !headers.has("X-Admin-Access-Key")) {
+    headers.set("X-Admin-Access-Key", adminAccessKey);
+  }
+  return headers;
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: options?.body instanceof FormData ? undefined : { "Content-Type": "application/json" },
-    ...options
-  });
+  const response = await fetch(buildUrl(path), { ...options, headers: buildHeaders(options) });
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     throw new Error(data.detail || "请求失败");
@@ -13,10 +78,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 async function requestBlob(path: string, options?: RequestInit): Promise<Blob> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: options?.body instanceof FormData ? undefined : { "Content-Type": "application/json" },
-    ...options
-  });
+  const response = await fetch(buildUrl(path), { ...options, headers: buildHeaders(options) });
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     throw new Error(data.detail || "请求失败");
@@ -78,7 +140,28 @@ export type HistoryItem = {
   category: string;
   confidence: number;
   need_human_review: boolean;
+  cost_cny?: number | null;
+  cost_usd?: number | null;
   created_at: string;
+};
+
+export type CostStats = {
+  total_spent_cny: number;
+  monthly_budget_cny: number | null;
+  remaining_cny: number | null;
+};
+
+export type RewriteResponse = {
+  answer: string;
+  ai_used?: boolean;
+  prompt_tokens?: number | null;
+  completion_tokens?: number | null;
+  total_tokens?: number | null;
+  prompt_cache_hit_tokens?: number | null;
+  prompt_cache_miss_tokens?: number | null;
+  cache_hit_ratio?: number | null;
+  cost_usd?: number | null;
+  cost_cny?: number | null;
 };
 
 export type AIProviderConfig = {
@@ -141,6 +224,21 @@ export type QQSettingsUpdate = {
   allowlist: string[];
 };
 
+export type WeComSettings = {
+  enabled: boolean;
+  bot_id: string;
+  secret_configured: boolean;
+  allowlist: string[];
+  running: boolean;
+};
+
+export type WeComSettingsUpdate = {
+  enabled: boolean;
+  bot_id: string;
+  secret?: string;
+  allowlist: string[];
+};
+
 export type BackupImportResponse = {
   ok: boolean;
   imported_faq: number;
@@ -183,6 +281,12 @@ export type StudentLinkResponse = {
   url: string;
 };
 
+export type AdminLinkResponse = {
+  url: string;
+  api_base: string;
+  admin_access_key: string;
+};
+
 export type StudentReplyResponse = {
   answer: string;
   category: string;
@@ -207,6 +311,14 @@ export type DeleteResponse = {
   deleted: number;
 };
 
+export type AutoStartSettings = {
+  enabled: boolean;
+  current_enabled: boolean;
+  supported: boolean;
+  target_path: string;
+  message: string;
+};
+
 export const api = {
   generateReply: (question: string, style = "normal") =>
     request<ReplyResponse>("/api/reply/generate", {
@@ -214,7 +326,7 @@ export const api = {
       body: JSON.stringify({ question, style })
     }),
   rewriteReply: (question: string, answer: string, style: string) =>
-    request<{ answer: string }>("/api/reply/rewrite", {
+    request<RewriteResponse>("/api/reply/rewrite", {
       method: "POST",
       body: JSON.stringify({ question, answer, style })
     }),
@@ -261,8 +373,12 @@ export const api = {
   getQQSettings: () => request<QQSettings>("/api/settings/qq"),
   updateQQSettings: (payload: QQSettingsUpdate) =>
     request<QQSettings>("/api/settings/qq", { method: "PUT", body: JSON.stringify(payload) }),
+  getWeComSettings: () => request<WeComSettings>("/api/settings/wecom"),
+  updateWeComSettings: (payload: WeComSettingsUpdate) =>
+    request<WeComSettings>("/api/settings/wecom", { method: "PUT", body: JSON.stringify(payload) }),
   getAppInfo: () => request<AppInfo>("/api/app/info"),
   getStudentLink: () => request<StudentLinkResponse>("/api/app/student-link"),
+  getAdminLink: () => request<AdminLinkResponse>("/api/app/admin-link"),
   checkUpdate: () => request<UpdateCheckResponse>("/api/app/update/check"),
   installUpdate: () => request<UpdateInstallResponse>("/api/app/update/install", { method: "POST" }),
   getUpdateProgress: () => request<UpdateProgressResponse>("/api/app/update/progress"),
@@ -274,5 +390,17 @@ export const api = {
     }),
   exportData: () => requestBlob("/api/data/export"),
   importData: (formData: FormData) =>
-    request<BackupImportResponse>("/api/data/import", { method: "POST", body: formData })
+    request<BackupImportResponse>("/api/data/import", { method: "POST", body: formData }),
+  getCostStats: () => request<CostStats>("/api/settings/cost-stats"),
+  updateBudget: (budget: number | null) =>
+    request<{ monthly_budget_cny: number | null }>("/api/settings/budget", {
+      method: "PUT",
+      body: JSON.stringify({ monthly_budget_cny: budget })
+    }),
+  getAutoStartSettings: () => request<AutoStartSettings>("/api/settings/autostart"),
+  updateAutoStartSettings: (enabled: boolean) =>
+    request<AutoStartSettings>("/api/settings/autostart", {
+      method: "PUT",
+      body: JSON.stringify({ enabled })
+    })
 };

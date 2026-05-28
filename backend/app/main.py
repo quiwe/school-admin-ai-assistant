@@ -8,9 +8,11 @@ from pathlib import Path
 
 from .database import Base, engine
 from .routers import data, faq, history, knowledge, reply, settings as settings_router, student
-from .schemas import StudentLinkResponse, UpdateCheckResponse, UpdateInstallResponse, UpdateProgressResponse
+from .schemas import AdminLinkResponse, StudentLinkResponse, UpdateCheckResponse, UpdateInstallResponse, UpdateProgressResponse
 from .services.app_info import get_app_info
+from .services.autostart import apply_saved_preference as apply_saved_auto_start
 from .services.qq_bot import qq_bot_service
+from .services.wecom_bot import wecom_bot_service
 from .services.updater import UpdateError, check_for_update, get_update_progress, start_download_and_launch_update
 from .settings import settings
 
@@ -21,12 +23,15 @@ app = FastAPI(title=settings.app_name)
 
 @app.on_event("startup")
 async def startup_services():
+    apply_saved_auto_start()
     await qq_bot_service.apply_saved_config()
+    wecom_bot_service.apply_saved_config()
 
 
 @app.on_event("shutdown")
 async def shutdown_services():
     await qq_bot_service.stop()
+    await wecom_bot_service.stop()
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,6 +61,15 @@ def has_student_access(request: Request) -> bool:
     return bool(settings.student_access_key and key == settings.student_access_key)
 
 
+def has_admin_access(request: Request) -> bool:
+    key = (
+        request.query_params.get("admin_key")
+        or request.headers.get("X-Admin-Access-Key")
+        or request.cookies.get("school_admin_access")
+    )
+    return bool(settings.admin_access_key and key == settings.admin_access_key)
+
+
 def is_allowed_remote_path(request: Request) -> bool:
     path = request.url.path
     if path in {"/student-chat", "/student-chat/"}:
@@ -68,12 +82,19 @@ def is_allowed_remote_path(request: Request) -> bool:
 @app.middleware("http")
 async def restrict_remote_access(request: Request, call_next):
     client_host = request.client.host if request.client else None
-    if not is_loopback_host(client_host) and not is_allowed_remote_path(request):
+    is_remote = not is_loopback_host(client_host)
+    if is_remote and request.method == "OPTIONS":
+        return await call_next(request)
+    admin_allowed = is_remote and has_admin_access(request)
+    if is_remote and not admin_allowed and not is_allowed_remote_path(request):
         return JSONResponse(
             status_code=403,
             content={"detail": "学生网页端只能访问老师提供的完整网页端地址，管理功能仅允许本机使用。"},
         )
-    return await call_next(request)
+    response = await call_next(request)
+    if admin_allowed:
+        response.set_cookie("school_admin_access", settings.admin_access_key or "", httponly=True, samesite="lax")
+    return response
 
 
 app.include_router(reply.router)
@@ -102,6 +123,24 @@ def student_link(request: Request):
     base_url = str(request.base_url).rstrip("/")
     suffix = f"?access_key={settings.student_access_key}" if settings.student_access_key else ""
     return {"url": f"{base_url}/student-chat{suffix}"}
+
+
+@app.get("/api/app/admin-link", response_model=AdminLinkResponse)
+def admin_link(request: Request):
+    if settings.admin_web_url:
+        api_base = settings.admin_web_url.split("/?", 1)[0].rstrip("/")
+        return {
+            "url": settings.admin_web_url,
+            "api_base": api_base,
+            "admin_access_key": settings.admin_access_key or "",
+        }
+    base_url = str(request.base_url).rstrip("/")
+    suffix = f"?admin_key={settings.admin_access_key}" if settings.admin_access_key else ""
+    return {
+        "url": f"{base_url}/{suffix}",
+        "api_base": base_url,
+        "admin_access_key": settings.admin_access_key or "",
+    }
 
 
 @app.get("/api/app/update/check", response_model=UpdateCheckResponse)

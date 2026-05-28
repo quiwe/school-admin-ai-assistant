@@ -1,6 +1,16 @@
-import { Activity, Bot, CheckCircle2, Download, ExternalLink, KeyRound, ListFilter, Save, Upload } from "lucide-react";
+import { Activity, Bot, CheckCircle2, Copy, Download, ExternalLink, KeyRound, Link2, ListFilter, Power, Save, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { api, AIProviderConfig, AISettingsUpdate, AppInfo, QQSettingsUpdate } from "../api/client";
+import {
+  api,
+  AdminLinkResponse,
+  AIProviderConfig,
+  AISettingsUpdate,
+  AppInfo,
+  AutoStartSettings,
+  CostStats,
+  QQSettingsUpdate,
+  WeComSettingsUpdate
+} from "../api/client";
 import { Button, Input, Panel, PrimaryButton, Select, Textarea } from "../components/ui";
 
 type ProviderForm = {
@@ -16,6 +26,15 @@ type QQForm = {
   app_secret_configured: boolean;
   sandbox: boolean;
   owner_openid: string;
+  allowlist_text: string;
+  running: boolean;
+};
+
+type WeComForm = {
+  enabled: boolean;
+  bot_id: string;
+  secret: string;
+  secret_configured: boolean;
   allowlist_text: string;
   running: boolean;
 };
@@ -50,9 +69,36 @@ export default function SettingsPage() {
   const [qqStatus, setQQStatus] = useState("");
   const [qqError, setQQError] = useState("");
 
+  const [activeChannel, setActiveChannel] = useState<"wecom" | "qq">("wecom");
+  const [wecomForm, setWeComForm] = useState<WeComForm>({
+    enabled: false,
+    bot_id: "",
+    secret: "",
+    secret_configured: false,
+    allowlist_text: "",
+    running: false
+  });
+  const [savingWeCom, setSavingWeCom] = useState(false);
+  const [wecomStatus, setWeComStatus] = useState("");
+  const [wecomError, setWeComError] = useState("");
+
+  const [costStats, setCostStats] = useState<CostStats | null>(null);
+  const [budgetInput, setBudgetInput] = useState("");
+  const [budgetSaving, setBudgetSaving] = useState(false);
+  const [budgetStatus, setBudgetStatus] = useState("");
+  const [autoStart, setAutoStart] = useState<AutoStartSettings | null>(null);
+  const [savingAutoStart, setSavingAutoStart] = useState(false);
+  const [autoStartStatus, setAutoStartStatus] = useState("");
+  const [adminLink, setAdminLink] = useState<AdminLinkResponse | null>(null);
+  const [adminLinkStatus, setAdminLinkStatus] = useState("");
+
   useEffect(() => {
     loadSettings();
     loadQQSettings();
+    loadWeComSettings();
+    loadCostStats();
+    loadAutoStartSettings();
+    loadAdminLink();
     api.getAppInfo().then(setAppInfo).catch(() => undefined);
   }, []);
 
@@ -104,6 +150,24 @@ export default function SettingsPage() {
       setQQError("");
     } catch (err) {
       setQQError(err instanceof Error ? err.message : "读取 QQ Bot 设置失败");
+    }
+  }
+
+  async function loadWeComSettings() {
+    try {
+      const data = await api.getWeComSettings();
+      setWeComForm({
+        enabled: data.enabled,
+        bot_id: data.bot_id,
+        secret: "",
+        secret_configured: data.secret_configured,
+        allowlist_text: data.allowlist.join("\n"),
+        running: data.running
+      });
+      setWeComStatus("");
+      setWeComError("");
+    } catch (err) {
+      setWeComError(err instanceof Error ? err.message : "读取企业微信设置失败");
     }
   }
 
@@ -216,6 +280,134 @@ export default function SettingsPage() {
     } finally {
       setSavingQQ(false);
     }
+  }
+
+  function updateWeComField<K extends keyof WeComForm>(field: K, value: WeComForm[K]) {
+    setWeComStatus("");
+    setWeComError("");
+    setWeComForm((current) => ({ ...current, [field]: value }));
+  }
+
+  async function saveWeComSettings() {
+    setWeComStatus("");
+    setWeComError("");
+    const botId = wecomForm.bot_id.trim();
+    if (wecomForm.enabled && !botId) {
+      setWeComError("启用企业微信前请填写 Bot ID");
+      return;
+    }
+    if (wecomForm.enabled && !wecomForm.secret.trim() && !wecomForm.secret_configured) {
+      setWeComError("启用企业微信前请填写 Secret");
+      return;
+    }
+    setSavingWeCom(true);
+    try {
+      const payload: WeComSettingsUpdate = {
+        enabled: wecomForm.enabled,
+        bot_id: botId,
+        ...(wecomForm.secret.trim() ? { secret: wecomForm.secret.trim() } : {}),
+        allowlist: wecomForm.allowlist_text
+          .split(/[\n,\s]+/)
+          .map((item) => item.trim())
+          .filter(Boolean)
+      };
+      const data = await api.updateWeComSettings(payload);
+      setWeComForm({
+        enabled: data.enabled,
+        bot_id: data.bot_id,
+        secret: "",
+        secret_configured: data.secret_configured,
+        allowlist_text: data.allowlist.join("\n"),
+        running: data.running
+      });
+      setWeComStatus(data.enabled ? (data.running ? "企业微信已保存并启动" : "已保存，机器人连接中...") : "企业微信已保存并停用");
+    } catch (err) {
+      setWeComError(err instanceof Error ? err.message : "保存企业微信设置失败");
+    } finally {
+      setSavingWeCom(false);
+    }
+  }
+
+  async function loadCostStats() {
+    try {
+      const stats = await api.getCostStats();
+      setCostStats(stats);
+      setBudgetInput(stats.monthly_budget_cny != null ? String(stats.monthly_budget_cny) : "");
+    } catch {
+      // 静默失败
+    }
+  }
+
+  async function saveBudget() {
+    setBudgetStatus("");
+    setBudgetSaving(true);
+    try {
+      const value = budgetInput.trim() ? parseFloat(budgetInput.trim()) : null;
+      if (value != null && (isNaN(value) || value < 0)) {
+        setBudgetStatus("请输入有效的正数金额");
+        return;
+      }
+      await api.updateBudget(value);
+      await loadCostStats();
+      setBudgetStatus(value != null ? `月度预算已设为 ¥${value}` : "已取消月度预算限制");
+    } catch (err) {
+      setBudgetStatus(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setBudgetSaving(false);
+    }
+  }
+
+  async function loadAutoStartSettings() {
+    try {
+      const data = await api.getAutoStartSettings();
+      setAutoStart(data);
+      setAutoStartStatus("");
+    } catch (err) {
+      setAutoStartStatus(err instanceof Error ? err.message : "读取开机自启动设置失败");
+    }
+  }
+
+  async function saveAutoStartSettings() {
+    if (!autoStart) return;
+    setSavingAutoStart(true);
+    setAutoStartStatus("");
+    try {
+      const data = await api.updateAutoStartSettings(autoStart.enabled);
+      setAutoStart(data);
+      setAutoStartStatus(data.enabled ? "已开启开机自启动" : "已取消开机自启动");
+    } catch (err) {
+      setAutoStartStatus(err instanceof Error ? err.message : "保存开机自启动设置失败");
+    } finally {
+      setSavingAutoStart(false);
+    }
+  }
+
+  async function loadAdminLink() {
+    try {
+      const data = await api.getAdminLink();
+      setAdminLink(data);
+    } catch {
+      // 移动端连接信息只在桌面端可用，失败时不影响其他设置。
+    }
+  }
+
+  async function copyText(text: string, statusText: string) {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const input = document.createElement("textarea");
+      input.value = text;
+      input.setAttribute("readonly", "true");
+      input.style.position = "fixed";
+      input.style.opacity = "0";
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      input.remove();
+    }
+    setAdminLinkStatus(statusText);
+    setTimeout(() => setAdminLinkStatus(""), 1500);
   }
 
   async function detectModels() {
@@ -449,87 +641,307 @@ export default function SettingsPage() {
       </Panel>
 
       <Panel
-        title="QQ Bot 机器人"
+        title="月度 AI 预算"
         action={
           <div className="text-xs">
-            {qqStatus && <span className="text-emerald-700">{qqStatus}</span>}
-            {qqError && <span className="text-red-600">{qqError}</span>}
+            {costStats ? (
+              <span>
+                已花费 <span className="font-medium text-blue-700">¥{costStats.total_spent_cny.toFixed(4)}</span>
+                {costStats.monthly_budget_cny != null ? (
+                  <span>
+                    {" · "}剩余{" "}
+                    <span className={costStats.remaining_cny != null && costStats.remaining_cny < 0 ? "font-medium text-red-600" : "font-medium text-emerald-600"}>
+                      ¥{costStats.remaining_cny?.toFixed(2)}
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-slate-400"> · 未设预算</span>
+                )}
+              </span>
+            ) : null}
+            {budgetStatus && <span className="ml-2 text-emerald-700">{budgetStatus}</span>}
           </div>
         }
       >
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
-          <div className="grid gap-3 lg:grid-cols-2">
-            <label className="space-y-1 text-sm">
-              <span className="font-medium text-slate-700">AppID</span>
-              <Input
-                placeholder="QQ 机器人 AppID"
-                value={qqForm.app_id}
-                onChange={(event) => updateQQField("app_id", event.target.value)}
-              />
-            </label>
-            <label className="space-y-1 text-sm">
-              <span className="font-medium text-slate-700">AppSecret</span>
-              <div className="relative">
-                <KeyRound className="pointer-events-none absolute left-3 top-2.5 text-slate-400" size={15} />
-                <Input
-                  className="pl-9"
-                  type="password"
-                  placeholder={qqForm.app_secret_configured ? "已配置，留空不修改" : "请输入 AppSecret"}
-                  value={qqForm.app_secret}
-                  onChange={(event) => updateQQField("app_secret", event.target.value)}
-                />
-              </div>
-            </label>
-            <label className="space-y-1 text-sm">
-              <span className="font-medium text-slate-700">Owner OpenID</span>
-              <Input
-                placeholder="可选：只允许这个 QQ 用户使用"
-                value={qqForm.owner_openid}
-                onChange={(event) => updateQQField("owner_openid", event.target.value)}
-              />
-            </label>
-            <label className="space-y-1 text-sm lg:col-span-2">
-              <span className="font-medium text-slate-700">允许名单</span>
-              <Textarea
-                className="min-h-20"
-                placeholder="可选：多个 OpenID 用空格、逗号或换行分隔"
-                value={qqForm.allowlist_text}
-                onChange={(event) => updateQQField("allowlist_text", event.target.value)}
-              />
-            </label>
-          </div>
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
-            <div className="flex items-center gap-2 font-semibold text-slate-900">
-              <Bot size={16} />
-              {qqForm.running ? "机器人运行中" : "机器人未运行"}
-            </div>
-            <label className="mt-4 flex items-center gap-2 text-slate-700">
-              <input
-                type="checkbox"
-                checked={qqForm.enabled}
-                onChange={(event) => updateQQField("enabled", event.target.checked)}
-              />
-              启用 QQ Bot
-            </label>
-            <label className="mt-3 flex items-center gap-2 text-slate-700">
-              <input
-                type="checkbox"
-                checked={qqForm.sandbox}
-                onChange={(event) => updateQQField("sandbox", event.target.checked)}
-              />
-              使用沙箱环境
-            </label>
-          </div>
-        </div>
-        <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
-          <p className="text-sm text-slate-500">
-            点击保存后，后端会按当前配置启动或停止 QQ Bot。未填写 Owner/允许名单时，机器人会绑定首次发消息的 QQ 用户。
-          </p>
-          <PrimaryButton onClick={saveQQSettings} disabled={savingQQ}>
+        <div className="flex items-end gap-3">
+          <label className="space-y-1 text-sm">
+            <span className="font-medium text-slate-700">月度预算金额（元）</span>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="留空表示不限制"
+              className="w-48"
+              value={budgetInput}
+              onChange={(event) => {
+                setBudgetInput(event.target.value);
+                setBudgetStatus("");
+              }}
+            />
+          </label>
+          <PrimaryButton onClick={saveBudget} disabled={budgetSaving}>
             <Save size={16} />
-            {savingQQ ? "保存中" : "保存 QQ 配置"}
+            {budgetSaving ? "保存中" : "保存预算"}
           </PrimaryButton>
         </div>
+        <p className="mt-2 text-xs leading-5 text-slate-500">
+          设置月度 AI 调用预算上限后，回复工作台会显示剩余余额。超支时余额数字会变红提醒。留空则不限制。
+        </p>
+      </Panel>
+
+      <Panel
+        title="开机自启动"
+        action={
+          <div className="text-xs">
+            {autoStartStatus && (
+              <span className={autoStartStatus.includes("失败") ? "text-red-600" : "text-emerald-700"}>
+                {autoStartStatus}
+              </span>
+            )}
+          </div>
+        }
+      >
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              <input
+                type="checkbox"
+                checked={autoStart?.enabled ?? true}
+                onChange={(event) =>
+                  setAutoStart((current) =>
+                    current
+                      ? { ...current, enabled: event.target.checked }
+                      : {
+                          enabled: event.target.checked,
+                          current_enabled: false,
+                          supported: false,
+                          target_path: "",
+                          message: ""
+                        }
+                  )
+                }
+              />
+              开机后自动启动
+            </label>
+            <p className="text-xs leading-5 text-slate-500">
+              当前系统启动项：{autoStart?.current_enabled ? "已启用" : "未启用"}
+              {autoStart?.message ? `。${autoStart.message}` : ""}
+            </p>
+            {autoStart?.target_path && (
+              <code className="block break-all rounded-md bg-slate-50 p-2 text-xs text-slate-600">
+                {autoStart.target_path}
+              </code>
+            )}
+          </div>
+          <div className="flex items-start justify-end">
+            <PrimaryButton onClick={saveAutoStartSettings} disabled={savingAutoStart || !autoStart?.supported}>
+              <Power size={16} />
+              {savingAutoStart ? "保存中" : "保存自启动设置"}
+            </PrimaryButton>
+          </div>
+        </div>
+      </Panel>
+
+      <Panel
+        title="移动端 / APK 连接"
+        action={adminLinkStatus ? <span className="text-xs text-emerald-700">{adminLinkStatus}</span> : null}
+      >
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+              <Link2 size={16} />
+              完整管理地址
+            </div>
+            <code className="block break-all rounded-md border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-700">
+              {adminLink?.url || "安装版启动后会生成移动端管理地址"}
+            </code>
+            <div className="grid gap-2 text-xs text-slate-600 lg:grid-cols-2">
+              <div className="rounded-md bg-slate-50 p-2">
+                API 地址：<span className="font-mono">{adminLink?.api_base || "-"}</span>
+              </div>
+              <div className="rounded-md bg-slate-50 p-2">
+                管理访问码：<span className="font-mono">{adminLink?.admin_access_key || "-"}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-start justify-end gap-2">
+            <Button onClick={() => copyText(adminLink?.url || "", "已复制完整管理地址")} disabled={!adminLink?.url}>
+              <Copy size={16} />
+              复制完整地址
+            </Button>
+          </div>
+        </div>
+      </Panel>
+
+      <Panel
+        title="聊天机器人"
+        action={
+          <div className="text-xs">
+            {activeChannel === "wecom" ? (
+              <>
+                {wecomStatus && <span className="text-emerald-700">{wecomStatus}</span>}
+                {wecomError && <span className="text-red-600">{wecomError}</span>}
+              </>
+            ) : (
+              <>
+                {qqStatus && <span className="text-emerald-700">{qqStatus}</span>}
+                {qqError && <span className="text-red-600">{qqError}</span>}
+              </>
+            )}
+          </div>
+        }
+      >
+        <label className="space-y-1 text-sm">
+          <span className="font-medium text-slate-700">接入渠道</span>
+          <Select
+            className="w-full max-w-xs"
+            value={activeChannel}
+            onChange={(event) => setActiveChannel(event.target.value as "wecom" | "qq")}
+          >
+            <option value="wecom">企业微信</option>
+            <option value="qq">QQ Bot</option>
+          </Select>
+        </label>
+
+        {activeChannel === "wecom" && (
+          <>
+            <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
+              <div className="grid gap-3 lg:grid-cols-2">
+                <label className="space-y-1 text-sm">
+                  <span className="font-medium text-slate-700">Bot ID</span>
+                  <Input
+                    placeholder="企业微信后台获取的机器人 ID"
+                    value={wecomForm.bot_id}
+                    onChange={(event) => updateWeComField("bot_id", event.target.value)}
+                  />
+                </label>
+                <label className="space-y-1 text-sm">
+                  <span className="font-medium text-slate-700">Secret</span>
+                  <div className="relative">
+                    <KeyRound className="pointer-events-none absolute left-3 top-2.5 text-slate-400" size={15} />
+                    <Input
+                      className="pl-9"
+                      type="password"
+                      placeholder={wecomForm.secret_configured ? "已配置，留空不修改" : "请输入 Secret"}
+                      value={wecomForm.secret}
+                      onChange={(event) => updateWeComField("secret", event.target.value)}
+                    />
+                  </div>
+                </label>
+                <label className="space-y-1 text-sm lg:col-span-2">
+                  <span className="font-medium text-slate-700">允许名单</span>
+                  <Textarea
+                    className="min-h-20"
+                    placeholder="可选：多个企业微信 UserID 用空格、逗号或换行分隔，留空则允许所有人"
+                    value={wecomForm.allowlist_text}
+                    onChange={(event) => updateWeComField("allowlist_text", event.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
+                <div className="flex items-center gap-2 font-semibold text-slate-900">
+                  <Bot size={16} />
+                  {wecomForm.running ? "机器人运行中" : "机器人未运行"}
+                </div>
+                <label className="mt-4 flex items-center gap-2 text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={wecomForm.enabled}
+                    onChange={(event) => updateWeComField("enabled", event.target.checked)}
+                  />
+                  启用企业微信
+                </label>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
+              <p className="text-sm text-slate-500">
+                使用 WebSocket 长连接，无需公网 IP。在企业微信后台创建 AI 机器人，获取 Bot ID 和 Secret 后填入上方。
+              </p>
+              <PrimaryButton onClick={saveWeComSettings} disabled={savingWeCom}>
+                <Save size={16} />
+                {savingWeCom ? "保存中" : "保存企业微信配置"}
+              </PrimaryButton>
+            </div>
+          </>
+        )}
+
+        {activeChannel === "qq" && (
+          <>
+            <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
+              <div className="grid gap-3 lg:grid-cols-2">
+                <label className="space-y-1 text-sm">
+                  <span className="font-medium text-slate-700">AppID</span>
+                  <Input
+                    placeholder="QQ 机器人 AppID"
+                    value={qqForm.app_id}
+                    onChange={(event) => updateQQField("app_id", event.target.value)}
+                  />
+                </label>
+                <label className="space-y-1 text-sm">
+                  <span className="font-medium text-slate-700">AppSecret</span>
+                  <div className="relative">
+                    <KeyRound className="pointer-events-none absolute left-3 top-2.5 text-slate-400" size={15} />
+                    <Input
+                      className="pl-9"
+                      type="password"
+                      placeholder={qqForm.app_secret_configured ? "已配置，留空不修改" : "请输入 AppSecret"}
+                      value={qqForm.app_secret}
+                      onChange={(event) => updateQQField("app_secret", event.target.value)}
+                    />
+                  </div>
+                </label>
+                <label className="space-y-1 text-sm">
+                  <span className="font-medium text-slate-700">Owner OpenID</span>
+                  <Input
+                    placeholder="可选：只允许这个 QQ 用户使用"
+                    value={qqForm.owner_openid}
+                    onChange={(event) => updateQQField("owner_openid", event.target.value)}
+                  />
+                </label>
+                <label className="space-y-1 text-sm lg:col-span-2">
+                  <span className="font-medium text-slate-700">允许名单</span>
+                  <Textarea
+                    className="min-h-20"
+                    placeholder="可选：多个 OpenID 用空格、逗号或换行分隔"
+                    value={qqForm.allowlist_text}
+                    onChange={(event) => updateQQField("allowlist_text", event.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
+                <div className="flex items-center gap-2 font-semibold text-slate-900">
+                  <Bot size={16} />
+                  {qqForm.running ? "机器人运行中" : "机器人未运行"}
+                </div>
+                <label className="mt-4 flex items-center gap-2 text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={qqForm.enabled}
+                    onChange={(event) => updateQQField("enabled", event.target.checked)}
+                  />
+                  启用 QQ Bot
+                </label>
+                <label className="mt-3 flex items-center gap-2 text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={qqForm.sandbox}
+                    onChange={(event) => updateQQField("sandbox", event.target.checked)}
+                  />
+                  使用沙箱环境
+                </label>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
+              <p className="text-sm text-slate-500">
+                点击保存后，后端会按当前配置启动或停止 QQ Bot。未填写 Owner/允许名单时，机器人会绑定首次发消息的 QQ 用户。
+              </p>
+              <PrimaryButton onClick={saveQQSettings} disabled={savingQQ}>
+                <Save size={16} />
+                {savingQQ ? "保存中" : "保存 QQ 配置"}
+              </PrimaryButton>
+            </div>
+          </>
+        )}
       </Panel>
 
       <Panel title="回复边界">
