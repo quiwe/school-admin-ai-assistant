@@ -114,6 +114,6 @@ coll = COLLECT(
     a.datas,
     strip=True,
     upx=True,
-    upx_exclude=[],
+    upx_exclude=["python312.dll", "python3.dll"],
     name="SchoolAdminAIAssistant",
 )
