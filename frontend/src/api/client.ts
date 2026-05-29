@@ -230,6 +230,7 @@ export type WeComSettings = {
   secret_configured: boolean;
   allowlist: string[];
   running: boolean;
+  last_error?: string | null;
 };
 
 export type WeComSettingsUpdate = {

@@ -19,9 +19,13 @@ class WeComBotService:
         self._task: asyncio.Task[None] | None = None
         self._processed_ids: list[str] = []
         self._running = False
+        self._last_error: str | None = None
 
     def is_running(self) -> bool:
         return self._running and self._client is not None and self._client.is_connected
+
+    def get_last_error(self) -> str | None:
+        return self._last_error
 
     def apply_saved_config(self) -> None:
         with SessionLocal() as db:
@@ -33,11 +37,14 @@ class WeComBotService:
         self._config = config
 
         if not config.enabled:
+            self._last_error = None
             return
         if not config.bot_id or not config.secret:
+            self._last_error = "Bot ID 或 Secret 缺失，无法启动企业微信机器人。"
             logger.warning("WeCom bot is enabled but bot_id or secret is missing.")
             return
 
+        self._last_error = None
         self._client = WSClient(
             WSClientOptions(
                 bot_id=config.bot_id,
@@ -57,15 +64,20 @@ class WeComBotService:
         def on_authenticated():
             logger.info("WeCom bot authenticated.")
             self._running = True
+            self._last_error = None
 
         @client.on("disconnected")
         def on_disconnected(reason: str):
-            logger.warning(f"WeCom bot disconnected: {reason}")
+            message = reason or "连接已断开"
+            logger.warning(f"WeCom bot disconnected: {message}")
             self._running = False
+            self._last_error = message
 
         @client.on("error")
         def on_error(error):
-            logger.error(f"WeCom bot error: {error}")
+            message = str(error)
+            logger.error(f"WeCom bot error: {message}")
+            self._last_error = message
 
         @client.on("message.text")
         async def on_text(frame):
@@ -80,6 +92,7 @@ class WeComBotService:
             pass
         except Exception:
             logger.exception("WeCom bot connection failed.")
+            self._last_error = "企业微信连接失败，详情请查看日志。"
 
     async def _handle_text_message(self, frame: dict) -> None:
         body = frame.get("body", {})

@@ -138,6 +138,7 @@ def read_wecom_settings(db: Session = Depends(get_db)):
         secret_configured=config.secret_configured,
         allowlist=config.allowlist or [],
         running=wecom_bot_service.is_running(),
+        last_error=wecom_bot_service.get_last_error(),
     )
 
 
@@ -157,6 +158,7 @@ async def update_wecom_settings(payload: WeComSettingsUpdate, db: Session = Depe
         secret_configured=config.secret_configured,
         allowlist=config.allowlist or [],
         running=wecom_bot_service.is_running(),
+        last_error=wecom_bot_service.get_last_error(),
     )
 
 

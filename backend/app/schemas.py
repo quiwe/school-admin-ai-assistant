@@ -215,6 +215,7 @@ class WeComSettingsRead(BaseModel):
     secret_configured: bool = False
     allowlist: list[str] = Field(default_factory=list)
     running: bool = False
+    last_error: str | None = None
 
 
 class WeComSettingsUpdate(BaseModel):

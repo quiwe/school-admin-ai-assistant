@@ -37,6 +37,7 @@ type WeComForm = {
   secret_configured: boolean;
   allowlist_text: string;
   running: boolean;
+  last_error: string;
 };
 
 export default function SettingsPage() {
@@ -76,7 +77,8 @@ export default function SettingsPage() {
     secret: "",
     secret_configured: false,
     allowlist_text: "",
-    running: false
+    running: false,
+    last_error: ""
   });
   const [savingWeCom, setSavingWeCom] = useState(false);
   const [wecomStatus, setWeComStatus] = useState("");
@@ -162,7 +164,8 @@ export default function SettingsPage() {
         secret: "",
         secret_configured: data.secret_configured,
         allowlist_text: data.allowlist.join("\n"),
-        running: data.running
+        running: data.running,
+        last_error: data.last_error || ""
       });
       setWeComStatus("");
       setWeComError("");
@@ -318,7 +321,8 @@ export default function SettingsPage() {
         secret: "",
         secret_configured: data.secret_configured,
         allowlist_text: data.allowlist.join("\n"),
-        running: data.running
+        running: data.running,
+        last_error: data.last_error || ""
       });
       setWeComStatus(data.enabled ? (data.running ? "企业微信已保存并启动" : "已保存，机器人连接中...") : "企业微信已保存并停用");
     } catch (err) {
@@ -780,6 +784,9 @@ export default function SettingsPage() {
             {activeChannel === "wecom" ? (
               <>
                 {wecomStatus && <span className="text-emerald-700">{wecomStatus}</span>}
+                {wecomForm.last_error && (
+                  <span className="text-red-600">连接异常：{wecomForm.last_error}</span>
+                )}
                 {wecomError && <span className="text-red-600">{wecomError}</span>}
               </>
             ) : (
