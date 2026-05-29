@@ -9,10 +9,6 @@ import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.*
 import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
-import java.net.URLDecoder
-import kotlin.text.Charsets
 
 class AppServer(
     port: Int,
@@ -44,8 +40,9 @@ class AppServer(
         }
 
         val response = try {
+            val parsed = parseRequest(session)
             runBlocking(scope.coroutineContext) {
-                route(session, uri, method)
+                route(session, uri, method, parsed)
             }
         } catch (e: Exception) {
             jsonError(e.message ?: "Server error", 500)
@@ -67,11 +64,9 @@ class AppServer(
         return addCors(response)
     }
 
-    private suspend fun route(session: IHTTPSession, uri: String, method: Method): Response {
-        // Parse body
-        val body = parseBody(session)
-        val files = parseFiles(session)
-
+    private suspend fun route(session: IHTTPSession, uri: String, method: Method, parsed: ParsedRequest): Response {
+        val body = parsed.body
+        val files = parsed.files
         return when {
             // Health
             uri == "/api/health" && method == Method.GET ->
@@ -86,6 +81,8 @@ class AppServer(
                 json(appRoutes.adminLink())
             uri == "/api/app/update/check" && method == Method.GET ->
                 json(appRoutes.updateCheck())
+            uri == "/api/app/update/install" && method == Method.POST ->
+                json(appRoutes.updateInstall())
             uri == "/api/app/update/progress" && method == Method.GET ->
                 json(appRoutes.updateProgress())
 
@@ -105,7 +102,10 @@ class AppServer(
             // Knowledge
             uri == "/api/knowledge/upload" && method == Method.POST -> {
                 val filePath = files["file"]
-                val filename = session.parms["filename"] ?: files["filename"]
+                val filename = session.parms["filename"]
+                    ?: session.parms["file"]
+                    ?: extractFilenameFromContentDisposition(session.headers["content-disposition"])
+                    ?: filePath?.let { File(it).name }
                 val category = session.parms["category"] ?: "其他"
                 val importFaq = session.parms["import_faq"]?.equals("true", true) ?: false
                 json(knowledgeRoutes.upload(body, filePath, filename, category, importFaq))
@@ -144,7 +144,11 @@ class AppServer(
             }
             uri == "/api/faq/import" && method == Method.POST -> {
                 val filePath = files["file"]
-                json(faqRoutes.import(filePath))
+                val filename = session.parms["filename"]
+                    ?: session.parms["file"]
+                    ?: extractFilenameFromContentDisposition(session.headers["content-disposition"])
+                    ?: filePath?.let { File(it).name }
+                json(faqRoutes.import(filePath, filename))
             }
             uri == "/api/faq/export" && method == Method.GET -> {
                 val keyword = session.parms["keyword"]
@@ -189,22 +193,30 @@ class AppServer(
                 json(settingsRoutes.testProvider(body))
             uri == "/api/settings/qq" && method == Method.GET ->
                 json(settingsRoutes.getQQSettings())
+            uri == "/api/settings/qq" && method == Method.PUT ->
+                json(settingsRoutes.updateQQSettings())
             uri == "/api/settings/wecom" && method == Method.GET ->
                 json(settingsRoutes.getWeComSettings())
+            uri == "/api/settings/wecom" && method == Method.PUT ->
+                json(settingsRoutes.updateWeComSettings())
             uri == "/api/settings/cost-stats" && method == Method.GET ->
                 json(settingsRoutes.getCostStats())
             uri == "/api/settings/budget" && method == Method.PUT ->
                 json(settingsRoutes.updateBudget(body))
             uri == "/api/settings/autostart" && method == Method.GET ->
                 json(settingsRoutes.getAutoStart())
+            uri == "/api/settings/autostart" && method == Method.PUT ->
+                json(settingsRoutes.updateAutoStart())
 
             // Data
             uri == "/api/data/export" && method == Method.GET -> {
                 val (bytes, filename) = dataRoutes.exportData()
                 fileResponse(bytes, filename, "application/json; charset=utf-8")
             }
-            uri == "/api/data/import" && method == Method.POST ->
-                json(dataRoutes.importData(body))
+            uri == "/api/data/import" && method == Method.POST -> {
+                val importBody = files["file"]?.let { File(it).readText(Charsets.UTF_8) } ?: body
+                json(dataRoutes.importData(importBody))
+            }
 
             // Static files (frontend)
             else -> serveStatic(uri)
@@ -213,13 +225,14 @@ class AppServer(
 
     private fun serveStatic(uri: String): Response {
         val path = if (uri == "/" || uri.isEmpty()) "/index.html" else uri
-        val assetPath = "public${path}"
+        val candidates = listOf("public${path}", path.trimStart('/'))
 
-        // Try frontend dist (from assets)
-        val assetStream = try {
-            context.assets.open(assetPath)
-        } catch (_: Exception) {
-            null
+        val assetStream = candidates.firstNotNullOfOrNull { assetPath ->
+            try {
+                context.assets.open(assetPath)
+            } catch (_: Exception) {
+                null
+            }
         }
 
         if (assetStream != null) {
@@ -228,10 +241,12 @@ class AppServer(
         }
 
         // Fallback to index.html for SPA routing
-        val indexStream = try {
-            context.assets.open("public/index.html")
-        } catch (_: Exception) {
-            null
+        val indexStream = listOf("public/index.html", "index.html").firstNotNullOfOrNull { assetPath ->
+            try {
+                context.assets.open(assetPath)
+            } catch (_: Exception) {
+                null
+            }
         }
 
         if (indexStream != null) {
@@ -241,30 +256,16 @@ class AppServer(
         return jsonError("Not found", 404)
     }
 
-    private fun parseBody(session: IHTTPSession): String {
+    private fun parseRequest(session: IHTTPSession): ParsedRequest {
         val files = HashMap<String, String>()
         try {
             session.parseBody(files)
         } catch (_: Exception) { }
-        return files["postData"] ?: ""
-    }
-
-    private fun parseFiles(session: IHTTPSession): Map<String, String> {
-        val files = HashMap<String, String>()
-        try {
-            session.parseBody(files)
-        } catch (_: Exception) { }
-        // Return temp file paths for uploaded files
         val result = mutableMapOf<String, String>()
         for ((key, value) in files) {
             if (key != "postData") result[key] = value
         }
-        // Also check parms for file content
-        val body = files["postData"] ?: ""
-        if (body.isNotBlank() && body.startsWith("--")) {
-            // Multipart body already parsed by NanoHTTPD
-        }
-        return result
+        return ParsedRequest(body = files["postData"] ?: "", files = result)
     }
 
     private fun extractId(uri: String, prefix: String, suffix: String?): Long {
@@ -274,9 +275,17 @@ class AppServer(
         return uri.substring(start, end).toLongOrNull() ?: -1
     }
 
+    private fun extractFilenameFromContentDisposition(disposition: String?): String? {
+        if (disposition == null) return null
+        val match = Regex("filename=\"([^\"]+)\"").find(disposition)
+        return match?.groupValues?.get(1)
+    }
+
     private fun json(content: String): Response {
+        val trimmed = content.trimStart()
+        val status = if (trimmed.startsWith("{\"detail\"")) Response.Status.BAD_REQUEST else Response.Status.OK
         return newFixedLengthResponse(
-            Response.Status.OK,
+            status,
             "application/json",
             content
         )
@@ -310,4 +319,9 @@ class AppServer(
         path.endsWith(".woff") -> "font/woff"
         else -> "application/octet-stream"
     }
+
+    private data class ParsedRequest(
+        val body: String,
+        val files: Map<String, String>
+    )
 }

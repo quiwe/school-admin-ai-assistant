@@ -164,7 +164,17 @@ class SettingsRoutes(
         return apiJson.encodeToString(QQSettingsResponse.serializer(), res)
     }
 
+    suspend fun updateQQSettings(): String {
+        val res = QQSettingsResponse()
+        return apiJson.encodeToString(QQSettingsResponse.serializer(), res)
+    }
+
     suspend fun getWeComSettings(): String {
+        val res = WeComSettingsResponse()
+        return apiJson.encodeToString(WeComSettingsResponse.serializer(), res)
+    }
+
+    suspend fun updateWeComSettings(): String {
         val res = WeComSettingsResponse()
         return apiJson.encodeToString(WeComSettingsResponse.serializer(), res)
     }
@@ -194,6 +204,11 @@ class SettingsRoutes(
     }
 
     suspend fun getAutoStart(): String {
+        val res = AutoStartResponse(supported = false, message = "安卓端无需此设置")
+        return apiJson.encodeToString(AutoStartResponse.serializer(), res)
+    }
+
+    suspend fun updateAutoStart(): String {
         val res = AutoStartResponse(supported = false, message = "安卓端无需此设置")
         return apiJson.encodeToString(AutoStartResponse.serializer(), res)
     }

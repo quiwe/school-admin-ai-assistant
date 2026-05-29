@@ -1,0 +1,1227 @@
+$ gh run watch 26588193469 --exit-status 2>&1
+[exit 1]
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  * Setup Node
+  * Setup Java
+  * Setup Android SDK
+  * Setup Gradle
+  * Build web assets
+  * Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  * Setup Android SDK
+  * Setup Gradle
+  * Build web assets
+  * Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  * Setup Android SDK
+  * Setup Gradle
+  * Build web assets
+  * Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  * Setup Android SDK
+  * Setup Gradle
+  * Build web assets
+  * Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  * Setup Android SDK
+  * Setup Gradle
+  * Build web assets
+  * Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  * Setup Gradle
+  * Build web assets
+  * Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  * Setup Gradle
+  * Build web assets
+  * Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  * Build web assets
+  * Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  * Build web assets
+  * Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  * Build APK
+  * Collect APK
+  * Upload APK artifact
+  * Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  X Build APK
+  - Collect APK
+  - Upload APK artifact
+  - Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  X Build APK
+  - Collect APK
+  - Upload APK artifact
+  - Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* android-apk (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  X Build APK
+  - Collect APK
+  - Upload APK artifact
+  - Publish APK asset to GitHub Release
+  * Post Setup Gradle
+  * Post Setup Java
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+X android-apk in 3m34s (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  X Build APK
+  - Collect APK
+  - Upload APK artifact
+  - Publish APK asset to GitHub Release
+  ✓ Post Setup Gradle
+  ✓ Post Setup Java
+  - Post Setup Node
+  ✓ Post Checkout
+  ✓ Complete job
+X main Build Android APK · 26588193469
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+X android-apk in 3m34s (ID 78339787905)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Setup Java
+  ✓ Setup Android SDK
+  ✓ Setup Gradle
+  ✓ Build web assets
+  ✓ Copy web assets to Android
+  X Build APK
+  - Collect APK
+  - Upload APK artifact
+  - Publish APK asset to GitHub Release
+  ✓ Post Setup Gradle
+  ✓ Post Setup Java
+  - Post Setup Node
+  ✓ Post Checkout
+  ✓ Complete job

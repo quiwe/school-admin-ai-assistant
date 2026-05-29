@@ -9,8 +9,10 @@ import urllib.request
 from urllib.parse import quote
 from pathlib import Path
 
+import pystray
 import uvicorn
 import webview
+from PIL import Image
 
 
 def app_dir() -> Path:
@@ -204,9 +206,9 @@ def startup_error_html(root: Path, port: int) -> str:
     """
 
 
-def open_desktop_window(root: Path, port: int, server_ready: bool) -> None:
+def open_desktop_window(root: Path, port: int, server_ready: bool):
     if server_ready:
-        webview.create_window(
+        return webview.create_window(
             "高校行政 AI 回复助手",
             f"http://127.0.0.1:{port}?desktop_build={int(time.time())}",
             width=1280,
@@ -215,7 +217,7 @@ def open_desktop_window(root: Path, port: int, server_ready: bool) -> None:
             confirm_close=False,
         )
     else:
-        webview.create_window(
+        return webview.create_window(
             "高校行政 AI 回复助手",
             html=startup_error_html(root, port),
             width=900,
@@ -223,6 +225,34 @@ def open_desktop_window(root: Path, port: int, server_ready: bool) -> None:
             min_size=(760, 520),
             confirm_close=False,
         )
+
+
+def run_tray(window, root: Path, title: str) -> None:
+    icon_file = icon_path(root)
+    if icon_file and Path(icon_file).exists():
+        image = Image.open(icon_file)
+    else:
+        image = Image.new("RGBA", (64, 64), (66, 133, 244, 255))
+
+    def show_window(icon, item):
+        try:
+            window.show()
+        except Exception:
+            pass
+
+    def quit_app(icon, item):
+        icon.stop()
+        try:
+            window.destroy()
+        except Exception:
+            pass
+
+    menu = pystray.Menu(
+        pystray.MenuItem("显示窗口", show_window, default=True),
+        pystray.MenuItem("退出", quit_app),
+    )
+    icon = pystray.Icon("school_admin_ai", image, title, menu)
+    icon.run()
 
 
 def main() -> None:
@@ -237,7 +267,21 @@ def main() -> None:
     server_ready = wait_for_server(port)
     write_log(root, f"Server ready: {server_ready}")
 
-    open_desktop_window(root, port, server_ready)
+    window = open_desktop_window(root, port, server_ready)
+
+    def on_closing():
+        window.hide()
+        return False
+
+    window.events.closing += on_closing
+
+    tray_thread = threading.Thread(
+        target=run_tray,
+        args=(window, root, "高校行政 AI 回复助手"),
+        daemon=True,
+    )
+    tray_thread.start()
+
     if sys.platform == "win32":
         webview.start(gui="edgechromium", debug=False, icon=icon_path(root))
     else:

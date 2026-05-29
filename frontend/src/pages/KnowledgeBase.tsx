@@ -2,6 +2,7 @@ import { Eye, RefreshCw, Save, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, KnowledgeFile } from "../api/client";
 import { Button, categories, Input, Panel, PrimaryButton, Select } from "../components/ui";
+import { displayText } from "../utils/text";
 
 export default function KnowledgeBase() {
   const [items, setItems] = useState<KnowledgeFile[]>([]);
@@ -126,8 +127,16 @@ export default function KnowledgeBase() {
       </Panel>
 
       <Panel title="文件列表">
-        <div className="overflow-hidden rounded-md border border-slate-200">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-md border border-slate-200">
+          <table className="min-w-[760px] table-fixed text-left text-sm">
+            <colgroup>
+              <col className="w-[30%]" />
+              <col className="w-[24%]" />
+              <col className="w-[9%]" />
+              <col className="w-[12%]" />
+              <col className="w-[16%]" />
+              <col className="w-[9%]" />
+            </colgroup>
             <thead className="bg-slate-50 text-slate-500">
               <tr>
                 <th className="px-3 py-2">文件名</th>
@@ -141,11 +150,13 @@ export default function KnowledgeBase() {
             <tbody>
               {items.map((item) => (
                 <tr key={item.id} className="border-t border-slate-200">
-                  <td className="px-3 py-2 font-medium">{item.filename}</td>
+                  <td className="safe-text px-3 py-2 font-medium">
+                    <span className="clamp-2 block" title={displayText(item.filename)}>{displayText(item.filename)}</span>
+                  </td>
                   <td className="px-3 py-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
                       <Select
-                        className="w-32"
+                        className="w-28 shrink-0"
                         value={categoryDrafts[item.id] || item.category}
                         onChange={(event) =>
                           setCategoryDrafts((current) => ({ ...current, [item.id]: event.target.value }))
@@ -160,12 +171,14 @@ export default function KnowledgeBase() {
                     </div>
                   </td>
                   <td className="px-3 py-2">{item.chunk_count}</td>
-                  <td className="px-3 py-2">{item.status}</td>
-                  <td className="px-3 py-2">{new Date(item.upload_time).toLocaleString()}</td>
-                  <td className="flex gap-2 px-3 py-2">
+                  <td className="safe-text px-3 py-2">{displayText(item.status, "unknown")}</td>
+                  <td className="px-3 py-2 text-xs text-slate-600">{new Date(item.upload_time).toLocaleString()}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex flex-wrap gap-2">
                     <Button onClick={() => setSelected(item)} title="查看解析内容"><Eye size={15} /></Button>
                     <Button onClick={() => reindex(item.id)} title="重新索引"><RefreshCw size={15} /></Button>
                     <Button onClick={() => remove(item.id)} title="删除"><Trash2 size={15} /></Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -175,8 +188,8 @@ export default function KnowledgeBase() {
       </Panel>
 
       {selected && (
-        <Panel title={`解析内容：${selected.filename}`} action={<Button onClick={() => setSelected(null)}>关闭</Button>}>
-          <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-slate-50 p-3 text-sm leading-6 text-slate-700">{selected.parsed_text}</pre>
+        <Panel title={`解析内容：${displayText(selected.filename)}`} action={<Button onClick={() => setSelected(null)}>关闭</Button>}>
+          <pre className="safe-text max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-slate-50 p-3 text-sm leading-6 text-slate-700">{displayText(selected.parsed_text, "暂无解析内容")}</pre>
         </Panel>
       )}
     </div>

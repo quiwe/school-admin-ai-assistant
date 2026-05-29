@@ -44,6 +44,8 @@ Source: "..\packaging\redist\MicrosoftEdgeWebView2RuntimeInstallerX64.exe"; Dest
 #endif
 
 [InstallDelete]
+Type: filesandordirs; Name: "{app}\_internal"
+Type: files; Name: "{app}\{#MyAppExeName}"
 Type: files; Name: "{autodesktop}\{#MyAppName}.lnk"
 Type: files; Name: "{autoprograms}\{#MyAppName}.lnk"
 

@@ -15,3 +15,5 @@ olefile==0.47
 pywebview==5.4
 websockets==14.1
 wecom-aibot-python-sdk==1.0.2
+pystray==0.19.5
+Pillow==11.1.0

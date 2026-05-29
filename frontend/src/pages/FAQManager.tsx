@@ -2,6 +2,7 @@ import { Download, Edit3, Plus, Search, Trash2, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, FAQItem } from "../api/client";
 import { Button, categories, Input, Panel, PrimaryButton, Select, Textarea } from "../components/ui";
+import { displayText, previewText } from "../utils/text";
 
 const emptyForm = { question: "", answer: "", category: "其他", allow_auto_reply: true };
 
@@ -209,18 +210,22 @@ export default function FAQManager() {
         <div className="space-y-3">
           {items.map((item) => (
             <article key={item.id} className="rounded-md border border-slate-200 p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="mb-1 flex items-center gap-2">
-                    <span className="rounded bg-slate-100 px-2 py-1 text-xs">{item.category}</span>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <span className="safe-text rounded bg-slate-100 px-2 py-1 text-xs">{displayText(item.category, "其他")}</span>
                     <span className={item.allow_auto_reply ? "text-xs text-emerald-700" : "text-xs text-slate-500"}>
                       {item.allow_auto_reply ? "允许自动回复" : "仅人工参考"}
                     </span>
                   </div>
-                  <h3 className="font-medium text-slate-900">{item.question}</h3>
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{item.answer}</p>
+                  <h3 className="safe-text clamp-2 font-medium text-slate-900" title={displayText(item.question, "未填写问题")}>
+                    {displayText(item.question, "未填写问题")}
+                  </h3>
+                  <p className="safe-text clamp-4 mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600" title={displayText(item.answer, "未填写答案")}>
+                    {previewText(item.answer, 360, "未填写答案")}
+                  </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex shrink-0 gap-2">
                   <Button onClick={() => edit(item)}><Edit3 size={15} /></Button>
                   <Button onClick={() => remove(item.id)}><Trash2 size={15} /></Button>
                 </div>

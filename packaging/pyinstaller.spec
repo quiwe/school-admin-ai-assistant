@@ -97,7 +97,7 @@ exe = EXE(
     name="SchoolAdminAIAssistant",
     debug=False,
     bootloader_ignore_signals=False,
-    strip=True,
+    strip=False,
     upx=False,
     console=False,
     icon=str(PROJECT_ROOT / "assets" / "app-icon.ico"),
@@ -112,7 +112,7 @@ coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
-    strip=True,
+    strip=False,
     upx=False,
     name="SchoolAdminAIAssistant",
 )

@@ -1,0 +1,1227 @@
+$ gh run watch 26592795742 --exit-status 2>&1
+[exit 0]
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  * Set up job
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  * Checkout
+  * Load release metadata
+  * Setup Node
+  * Build frontend
+  * Copy frontend into FastAPI static directory
+  * Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  * Load release metadata
+  * Setup Node
+  * Build frontend
+  * Copy frontend into FastAPI static directory
+  * Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  * Setup Node
+  * Build frontend
+  * Copy frontend into FastAPI static directory
+  * Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  * Setup Node
+  * Build frontend
+  * Copy frontend into FastAPI static directory
+  * Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  * Build frontend
+  * Copy frontend into FastAPI static directory
+  * Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  * Build frontend
+  * Copy frontend into FastAPI static directory
+  * Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  * Build frontend
+  * Copy frontend into FastAPI static directory
+  * Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  * Build frontend
+  * Copy frontend into FastAPI static directory
+  * Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  * Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  * Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  * Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  * Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  * Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 2 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  * Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  * Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  ✓ Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  ✓ Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  ✓ Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  ✓ Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  ✓ Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  ✓ Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  ✓ Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  ✓ Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 3 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  ✓ Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 4 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ Download WebView2 Runtime redistributable
+  ✓ Build installer
+  ✓ Upload installer artifact
+  * Publish versioned GitHub Release
+  * Post Setup Python
+  * Post Setup Node
+  * Post Checkout
+Refreshing run status every 3 seconds. Press Ctrl+C to quit.
+
+* main Build Windows Installer · 26592795742
+Triggered via workflow_dispatch about 4 minutes ago
+
+JOBS
+* windows-installer (ID 78355722854)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Load release metadata
+  ✓ Setup Node
+  ✓ Build frontend
+  ✓ Copy frontend into FastAPI static directory
+  ✓ Setup Python
+  ✓ Build desktop executable
+  ✓ Install Inno Setup
+  ✓ D
+
+[… truncated 24152 chars …]

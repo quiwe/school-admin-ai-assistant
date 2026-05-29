@@ -75,9 +75,9 @@ class FaqRoutes(
         return csv.toByteArray(Charsets.UTF_8) to "faq_export.csv"
     }
 
-    suspend fun import(filePath: String?): String {
+    suspend fun import(filePath: String?, filename: String? = null): String {
         if (filePath == null) return """{"detail":"未提供文件"}"""
-        val rows = FileParser.extractFaqRowsFromSpreadsheet(context, filePath)
+        val rows = FileParser.extractFaqRowsFromSpreadsheet(context, filePath, filename)
         if (rows.isEmpty()) return """{"detail":"未能从文件中提取到 FAQ 数据，请确保第一行为表头且包含「问题」「答案」列。"}"""
         var imported = 0
         var skipped = 0

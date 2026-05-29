@@ -25,7 +25,7 @@ class KnowledgeRoutes(
         val suffix = fname.lowercase().substringAfterLast('.', "")
 
         val parsedText = try {
-            FileParser.parseFile(context, filePath)
+            FileParser.parseFile(context, filePath, fname)
         } catch (e: Exception) {
             return """{"detail":"文件解析失败：${e.message}"}"""
         }
@@ -49,7 +49,7 @@ class KnowledgeRoutes(
         }
 
         if (importFaq && suffix in setOf("xlsx", "xls")) {
-            for (row in FileParser.extractFaqRowsFromSpreadsheet(context, filePath)) {
+            for (row in FileParser.extractFaqRowsFromSpreadsheet(context, filePath, fname)) {
                 faqDao.insert(
                     FaqItemEntity(
                         question = row["question"] ?: "",

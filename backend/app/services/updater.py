@@ -125,6 +125,10 @@ def app_root() -> Path:
 
 
 def updates_dir() -> Path:
+    if sys.platform == "darwin" and getattr(sys, "frozen", False):
+        path = Path.home() / "Library" / "Application Support" / "SchoolAdminAIAssistant" / "data" / "updates"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
     path = app_root() / "data" / "updates"
     path.mkdir(parents=True, exist_ok=True)
     return path

@@ -20,6 +20,9 @@ class DataRoutes(
         }
 
         val json = buildJsonObject {
+            put("format", "school-admin-ai-assistant-backup")
+            put("version", 1)
+            put("exported_at", java.time.Instant.now().toString())
             putJsonArray("faq_items") {
                 for (faq in faqs) {
                     addJsonObject {
@@ -66,6 +69,10 @@ class DataRoutes(
 
     suspend fun importData(body: String): String {
         val json = Json.parseToJsonElement(body).jsonObject
+        val format = json["format"]?.jsonPrimitive?.contentOrNull
+        if (format != null && format != "school-admin-ai-assistant-backup") {
+            return """{"detail":"备份文件格式不匹配。"}"""
+        }
         var importedFaq = 0
         var skippedFaq = 0
         var importedKnowledge = 0

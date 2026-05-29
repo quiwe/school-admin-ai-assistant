@@ -37,6 +37,10 @@ class AppRoutes {
         return apiJson.encodeToString(UpdateCheckResponse.serializer(), res)
     }
 
+    fun updateInstall(): String {
+        return """{"ok":false,"message":"安卓端暂不支持应用内安装更新。请从发布页下载安装新版 APK。","installer_path":null}"""
+    }
+
     fun updateProgress(): String {
         val res = UpdateProgressResponse(status = "idle")
         return apiJson.encodeToString(UpdateProgressResponse.serializer(), res)
