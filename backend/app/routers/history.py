@@ -10,7 +10,13 @@ router = APIRouter(prefix="/api/history", tags=["history"])
 
 
 @router.get("/list", response_model=list[HistoryRead])
-def list_history(keyword: str | None = None, category: str | None = None, db: Session = Depends(get_db)):
+def list_history(
+    keyword: str | None = None,
+    category: str | None = None,
+    skip: int = 0,
+    limit: int = 200,
+    db: Session = Depends(get_db),
+):
     query = db.query(ReplyHistory).order_by(ReplyHistory.created_at.desc())
     if keyword:
         like = f"%{keyword}%"
@@ -23,7 +29,7 @@ def list_history(keyword: str | None = None, category: str | None = None, db: Se
         )
     if category:
         query = query.filter(ReplyHistory.category == category)
-    return query.limit(200).all()
+    return query.offset(skip).limit(min(limit, 500)).all()
 
 
 @router.post("/create", response_model=HistoryRead)

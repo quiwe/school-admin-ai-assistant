@@ -1,5 +1,5 @@
 import { BookOpen, Check, ClipboardList, Copy, Download, ExternalLink, History, Link2, MessageSquareText, Settings, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState, Component, type ReactNode, type ErrorInfo } from "react";
 import {
   api,
   getRuntimeApiBase,
@@ -10,12 +10,47 @@ import {
   UpdateProgressResponse
 } from "./api/client";
 import { Button, Input, PrimaryButton } from "./components/ui";
-import FAQManager from "./pages/FAQManager";
-import HistoryPage from "./pages/History";
-import KnowledgeBase from "./pages/KnowledgeBase";
-import ReplyWorkbench from "./pages/ReplyWorkbench";
-import SettingsPage from "./pages/Settings";
-import StudentChat from "./pages/StudentChat";
+import { copyToClipboard } from "./utils/clipboard";
+
+const FAQManager = lazy(() => import("./pages/FAQManager"));
+const HistoryPage = lazy(() => import("./pages/History"));
+const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
+const ReplyWorkbench = lazy(() => import("./pages/ReplyWorkbench"));
+const SettingsPage = lazy(() => import("./pages/Settings"));
+const StudentChat = lazy(() => import("./pages/StudentChat"));
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: string }> {
+  state = { hasError: false, error: "" };
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error: error.message };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("渲染错误：", error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 p-8 text-center">
+          <p className="text-base font-semibold text-red-700">页面加载出错</p>
+          <p className="text-sm text-slate-600">{this.state.error}</p>
+          <Button onClick={() => { this.setState({ hasError: false, error: "" }); }}>重试</Button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function PageLoading() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
+    </div>
+  );
+}
 
 const nav = [
   { key: "reply", label: "回复工作台", icon: MessageSquareText },
@@ -28,7 +63,7 @@ const nav = [
 export default function App() {
   const pathname = window.location.pathname.replace(/\/$/, "");
   if (pathname === "/student-chat") {
-    return <StudentChat />;
+    return <ErrorBoundary><Suspense fallback={<PageLoading />}><StudentChat /></Suspense></ErrorBoundary>;
   }
   if (isAndroidApp() && !getRuntimeApiBase()) {
     return <AndroidConnectionSetup />;
@@ -156,19 +191,7 @@ function DesktopApp() {
 
   async function copyStudentChatUrl() {
     if (!studentChatUrl) return;
-    try {
-      await navigator.clipboard.writeText(studentChatUrl);
-    } catch {
-      const input = document.createElement("textarea");
-      input.value = studentChatUrl;
-      input.setAttribute("readonly", "true");
-      input.style.position = "fixed";
-      input.style.opacity = "0";
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand("copy");
-      input.remove();
-    }
+    await copyToClipboard(studentChatUrl);
     setCopiedUrl(true);
     setTimeout(() => setCopiedUrl(false), 1400);
   }
@@ -323,21 +346,15 @@ function DesktopApp() {
           })}
         </nav>
         <main className="min-w-0 flex-1 pb-16 md:pb-0">
-          <div className={page === "reply" ? "block" : "hidden"}>
-            <ReplyWorkbench />
-          </div>
-          <div className={page === "knowledge" ? "block" : "hidden"}>
-            <KnowledgeBase />
-          </div>
-          <div className={page === "faq" ? "block" : "hidden"}>
-            <FAQManager />
-          </div>
-          <div className={page === "history" ? "block" : "hidden"}>
-            <HistoryPage />
-          </div>
-          <div className={page === "settings" ? "block" : "hidden"}>
-            <SettingsPage />
-          </div>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoading />}>
+              {page === "reply" && <ReplyWorkbench />}
+              {page === "knowledge" && <KnowledgeBase />}
+              {page === "faq" && <FAQManager />}
+              {page === "history" && <HistoryPage />}
+              {page === "settings" && <SettingsPage />}
+            </Suspense>
+          </ErrorBoundary>
         </main>
       </div>
 

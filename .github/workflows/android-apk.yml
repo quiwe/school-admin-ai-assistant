@@ -3,6 +3,10 @@ name: Build Android APK
 on:
   workflow_dispatch:
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -31,7 +35,8 @@ jobs:
           notes = f"{notes}\n\n开发者：{developer}\n安卓独立版 — 无需电脑即可使用，所有功能（AI回复、知识库、FAQ）均在手机端本地运行。配置好 AI 提供商后即可直接生成回复。"
           path = pathlib.Path(os.environ["RUNNER_TEMP"]) / "release-notes.md"
           path.write_text(notes, encoding="utf-8")
-          print(f"RELEASE_NOTES_PATH={path}", file=open(os.environ["GITHUB_ENV"], "a", encoding="utf-8"))
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as f:
+            print(f"RELEASE_NOTES_PATH={path}", file=f)
           PY
           {
             echo "APP_VERSION=${version}"

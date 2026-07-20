@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..schemas import GenerateReplyRequest, GenerateReplyResponse, Reference, RewriteReplyRequest
+from ..schemas import GenerateReplyRequest, GenerateReplyResponse, Reference, RewriteReplyRequest, RewriteReplyResponse
 from ..services.ai_provider import ai_provider
 from ..services.classifier import classify_question
 from ..services.rag import confidence_from_references, retrieve_references
@@ -95,26 +95,26 @@ def generate_reply(payload: GenerateReplyRequest, db: Session = Depends(get_db))
     )
 
 
-@router.post("/rewrite")
+@router.post("/rewrite", response_model=RewriteReplyResponse)
 def rewrite_reply(payload: RewriteReplyRequest, db: Session = Depends(get_db)):
     try:
         result = ai_provider.rewrite_reply(payload.question, payload.answer, payload.style, get_ai_config(db))
         answer = result.text.strip()
-        return {
-            "answer": answer,
-            "ai_used": True,
-            "prompt_tokens": result.usage.prompt_tokens if result.usage else None,
-            "completion_tokens": result.usage.completion_tokens if result.usage else None,
-            "total_tokens": result.usage.total_tokens if result.usage else None,
-            "prompt_cache_hit_tokens": result.usage.prompt_cache_hit_tokens if result.usage else None,
-            "prompt_cache_miss_tokens": result.usage.prompt_cache_miss_tokens if result.usage else None,
-            "cache_hit_ratio": result.usage.cache_hit_ratio if result.usage else None,
-            "cost_usd": result.usage.cost_usd if result.usage else None,
-            "cost_cny": result.usage.cost_cny if result.usage else None,
-        }
+        return RewriteReplyResponse(
+            answer=answer,
+            ai_used=True,
+            prompt_tokens=result.usage.prompt_tokens if result.usage else None,
+            completion_tokens=result.usage.completion_tokens if result.usage else None,
+            total_tokens=result.usage.total_tokens if result.usage else None,
+            prompt_cache_hit_tokens=result.usage.prompt_cache_hit_tokens if result.usage else None,
+            prompt_cache_miss_tokens=result.usage.prompt_cache_miss_tokens if result.usage else None,
+            cache_hit_ratio=result.usage.cache_hit_ratio if result.usage else None,
+            cost_usd=result.usage.cost_usd if result.usage else None,
+            cost_cny=result.usage.cost_cny if result.usage else None,
+        )
     except Exception:
         answer = local_rewrite(payload.answer, payload.style)
-        return {"answer": answer.strip(), "ai_used": False}
+        return RewriteReplyResponse(answer=answer.strip(), ai_used=False)
 
 
 def safe_error_message(exc: Exception) -> str:

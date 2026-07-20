@@ -12,6 +12,7 @@ import {
   WeComSettingsUpdate
 } from "../api/client";
 import { Button, Input, Panel, PrimaryButton, Select, Textarea } from "../components/ui";
+import { copyToClipboard } from "../utils/clipboard";
 
 type ProviderForm = {
   api_key: string;
@@ -397,19 +398,7 @@ export default function SettingsPage() {
 
   async function copyText(text: string, statusText: string) {
     if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const input = document.createElement("textarea");
-      input.value = text;
-      input.setAttribute("readonly", "true");
-      input.style.position = "fixed";
-      input.style.opacity = "0";
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand("copy");
-      input.remove();
-    }
+    await copyToClipboard(text);
     setAdminLinkStatus(statusText);
     setTimeout(() => setAdminLinkStatus(""), 1500);
   }
@@ -762,9 +751,6 @@ export default function SettingsPage() {
             <div className="grid gap-2 text-xs text-slate-600 lg:grid-cols-2">
               <div className="rounded-md bg-slate-50 p-2">
                 API 地址：<span className="font-mono">{adminLink?.api_base || "-"}</span>
-              </div>
-              <div className="rounded-md bg-slate-50 p-2">
-                管理访问码：<span className="font-mono">{adminLink?.admin_access_key || "-"}</span>
               </div>
             </div>
           </div>

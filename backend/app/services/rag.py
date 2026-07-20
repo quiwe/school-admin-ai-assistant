@@ -2,7 +2,7 @@ import math
 import re
 from dataclasses import dataclass
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from ..models import FAQItem, KnowledgeChunk
 
@@ -108,7 +108,6 @@ def retrieve_references(db: Session, question: str, limit: int = 5) -> list[Retr
     candidates: list[RetrievedReference] = []
 
     faqs = db.query(FAQItem).filter(FAQItem.allow_auto_reply.is_(True)).all()
-    for faq in faqs:
         score = max(
             similarity_score(question, faq.question) * 1.35,
             similarity_score(question, f"{faq.question}\n{faq.answer}"),
@@ -123,7 +122,7 @@ def retrieve_references(db: Session, question: str, limit: int = 5) -> list[Retr
                 )
             )
 
-    chunks = db.query(KnowledgeChunk).all()
+    chunks = db.query(KnowledgeChunk).options(joinedload(KnowledgeChunk.file)).all()
     for chunk in chunks:
         score = similarity_score(question, chunk.chunk_text)
         if score > 0.12:

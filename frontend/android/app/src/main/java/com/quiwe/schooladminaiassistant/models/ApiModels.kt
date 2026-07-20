@@ -282,8 +282,7 @@ data class StudentLinkResponse(val url: String)
 @Serializable
 data class AdminLinkResponse(
     val url: String,
-    @SerialName("api_base") val apiBase: String,
-    @SerialName("admin_access_key") val adminAccessKey: String
+    @SerialName("api_base") val apiBase: String
 )
 
 @Serializable

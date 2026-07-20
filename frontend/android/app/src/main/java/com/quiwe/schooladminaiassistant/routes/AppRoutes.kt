@@ -23,8 +23,7 @@ class AppRoutes {
     fun adminLink(): String {
         val res = AdminLinkResponse(
             url = "http://localhost:8765",
-            apiBase = "",
-            adminAccessKey = ""
+            apiBase = ""
         )
         return apiJson.encodeToString(AdminLinkResponse.serializer(), res)
     }

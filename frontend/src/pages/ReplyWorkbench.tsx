@@ -4,7 +4,7 @@ import { api, CostStats, Reference, ReplyResponse } from "../api/client";
 import { Button, Panel, PrimaryButton, Textarea } from "../components/ui";
 
 export default function ReplyWorkbench() {
-  const [question, setQuestion] = useState("老师，我论文系统上传后一直显示待审核怎么办？");
+  const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [meta, setMeta] = useState<Omit<ReplyResponse, "answer"> | null>(null);
   const [loading, setLoading] = useState(false);

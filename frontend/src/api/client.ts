@@ -285,7 +285,6 @@ export type StudentLinkResponse = {
 export type AdminLinkResponse = {
   url: string;
   api_base: string;
-  admin_access_key: string;
 };
 
 export type StudentReplyResponse = {

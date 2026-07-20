@@ -50,6 +50,19 @@ class RewriteReplyRequest(BaseModel):
     style: str = "formal"
 
 
+class RewriteReplyResponse(BaseModel):
+    answer: str
+    ai_used: bool = False
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    total_tokens: int | None = None
+    prompt_cache_hit_tokens: int | None = None
+    prompt_cache_miss_tokens: int | None = None
+    cache_hit_ratio: float | None = None
+    cost_usd: float | None = None
+    cost_cny: float | None = None
+
+
 class KnowledgeFileRead(BaseModel):
     id: int
     filename: str
@@ -276,7 +289,6 @@ class StudentLinkResponse(BaseModel):
 class AdminLinkResponse(BaseModel):
     url: str
     api_base: str
-    admin_access_key: str
 
 
 class CostStatsResponse(BaseModel):

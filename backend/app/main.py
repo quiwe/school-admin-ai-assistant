@@ -1,4 +1,5 @@
 import ipaddress
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,20 +19,18 @@ from .settings import settings
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title=settings.app_name)
 
-
-@app.on_event("startup")
-async def startup_services():
+@asynccontextmanager
+async def lifespan(application: FastAPI):
     apply_saved_auto_start()
     await qq_bot_service.apply_saved_config()
     wecom_bot_service.apply_saved_config()
-
-
-@app.on_event("shutdown")
-async def shutdown_services():
+    yield
     await qq_bot_service.stop()
     await wecom_bot_service.stop()
+
+
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -93,7 +92,13 @@ async def restrict_remote_access(request: Request, call_next):
         )
     response = await call_next(request)
     if admin_allowed:
-        response.set_cookie("school_admin_access", settings.admin_access_key or "", httponly=True, samesite="lax")
+        response.set_cookie(
+            "school_admin_access",
+            settings.admin_access_key or "",
+            httponly=True,
+            samesite="strict",
+            secure=True,
+        )
     return response
 
 
@@ -132,14 +137,12 @@ def admin_link(request: Request):
         return {
             "url": settings.admin_web_url,
             "api_base": api_base,
-            "admin_access_key": settings.admin_access_key or "",
         }
     base_url = str(request.base_url).rstrip("/")
     suffix = f"?admin_key={settings.admin_access_key}" if settings.admin_access_key else ""
     return {
         "url": f"{base_url}/{suffix}",
         "api_base": base_url,
-        "admin_access_key": settings.admin_access_key or "",
     }
 
 

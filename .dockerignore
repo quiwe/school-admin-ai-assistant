@@ -4,3 +4,15 @@
 **/dist
 data
 .git
+.github
+packaging
+assets
+docs
+*.apk
+*.dmg
+*.exe
+Dockerfile
+docker-compose.yml
+CHANGELOG.md
+DEVELOPER
+VERSION
