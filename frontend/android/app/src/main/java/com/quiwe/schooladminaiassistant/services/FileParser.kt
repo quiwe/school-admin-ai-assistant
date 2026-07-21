@@ -119,7 +119,7 @@ object FileParser {
                         for (rowMatch in rowRegex.findAll(xmlText)) {
                             val rowText = rowMatch.value
                             val cellRegex = Regex("<c[^>]*>.*?</c>", RegexOption.DOT_MATCHES_ALL)
-                            val cells = cellRegex.mapNotNull { cellMatch ->
+                            val cells = cellRegex.findAll(xmlText).mapNotNull { cellMatch ->
                                 val cell = cellMatch.value
                                 val cellText = when {
                                     Regex("t=\"s\"").containsMatchIn(cell) -> {
