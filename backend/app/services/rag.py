@@ -108,6 +108,7 @@ def retrieve_references(db: Session, question: str, limit: int = 5) -> list[Retr
     candidates: list[RetrievedReference] = []
 
     faqs = db.query(FAQItem).filter(FAQItem.allow_auto_reply.is_(True)).all()
+    for faq in faqs:
         score = max(
             similarity_score(question, faq.question) * 1.35,
             similarity_score(question, f"{faq.question}\n{faq.answer}"),
