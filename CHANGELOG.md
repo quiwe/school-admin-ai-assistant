@@ -1,5 +1,13 @@
 # 更新日志
 
+## 0.7.4 - 2026-07-26
+
+开发者：maoqiu
+
+- 修复 Windows 安装包启动后服务无法启动的问题（ModuleNotFoundError: app.services.rag）。
+- PyInstaller 打包配置补全所有 app 子模块的 hidden imports，防止相对导入链断裂。
+- 补充 aibot（企业微信 SDK）到 PyInstaller 收集列表。
+
 ## 0.7.3 - 2026-07-21
 
 开发者：maoqiu

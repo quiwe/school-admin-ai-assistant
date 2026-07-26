@@ -23,8 +23,45 @@ for package in [
     "openpyxl",
     "xlrd",
     "olefile",
+    "aibot",
 ]:
     hiddenimports += collect_submodules(package)
+
+# Explicitly include all app submodules — PyInstaller's static analysis
+# can miss relative imports deeper in the chain (e.g. app.services.rag).
+_app_modules = [
+    "app",
+    "app.main",
+    "app.database",
+    "app.models",
+    "app.schemas",
+    "app.settings",
+    "app.routers",
+    "app.routers.data",
+    "app.routers.faq",
+    "app.routers.history",
+    "app.routers.knowledge",
+    "app.routers.reply",
+    "app.routers.settings",
+    "app.routers.student",
+    "app.services",
+    "app.services.ai_provider",
+    "app.services.app_info",
+    "app.services.autostart",
+    "app.services.bot_config_utils",
+    "app.services.classifier",
+    "app.services.file_parser",
+    "app.services.model_discovery",
+    "app.services.qq_bot",
+    "app.services.qq_config",
+    "app.services.rag",
+    "app.services.runtime_config",
+    "app.services.safety",
+    "app.services.updater",
+    "app.services.wecom_bot",
+    "app.services.wecom_config",
+]
+hiddenimports += _app_modules
 
 # sqlalchemy — only keep the sqlite dialect, drop mysql/pg/oracle/mssql
 _hidden_sqlalchemy = collect_submodules("sqlalchemy")
