@@ -63,9 +63,7 @@ def cjk_ngrams(text: str) -> list[str]:
     return tokens
 
 
-def bm25_like_score(query: str, document: str) -> float:
-    q_terms = tokenize(query)
-    d_terms = tokenize(document)
+def _bm25_score(q_terms: list[str], d_terms: list[str]) -> float:
     if not q_terms or not d_terms:
         return 0.0
     doc_len = len(d_terms)
@@ -80,15 +78,22 @@ def bm25_like_score(query: str, document: str) -> float:
     return score / math.sqrt(max(len(set(q_terms)), 1))
 
 
-def similarity_score(query: str, document: str) -> float:
-    bm25_score = bm25_like_score(query, document)
-    q_terms = set(tokenize(query))
-    d_terms = set(tokenize(document))
-    if not q_terms or not d_terms:
-        return bm25_score
+def bm25_like_score(query: str, document: str) -> float:
+    return _bm25_score(tokenize(query), tokenize(document))
 
-    overlap = q_terms & d_terms
-    overlap_score = len(overlap) / math.sqrt(max(len(q_terms), 1))
+
+def similarity_score(query: str, document: str) -> float:
+    # 查询和文档各分词一次，避免原先在 bm25 与 overlap 两处重复分词。
+    q_terms = tokenize(query)
+    d_terms = tokenize(document)
+    if not q_terms or not d_terms:
+        return 0.0
+
+    bm25_score = _bm25_score(q_terms, d_terms)
+    q_set = set(q_terms)
+    d_set = set(d_terms)
+    overlap = q_set & d_set
+    overlap_score = len(overlap) / math.sqrt(max(len(q_set), 1))
     compact_query = compact_text(query)
     compact_document = compact_text(document)
     substring_bonus = 0.0

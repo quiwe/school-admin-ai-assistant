@@ -1,5 +1,7 @@
 backend/.env
 frontend/.env
+backend/.venv/
+.npm-cache/
 data/
 backend/data/
 frontend/node_modules/

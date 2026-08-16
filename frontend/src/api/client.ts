@@ -33,6 +33,13 @@ export function saveRuntimeConnection(apiBase: string, adminAccessKey: string) {
   window.dispatchEvent(new Event("app:api-connection-changed"));
 }
 
+export function captureAdminKeyFromLocation() {
+  const key = new URLSearchParams(window.location.search).get("admin_key");
+  if (key && key.trim()) {
+    window.localStorage.setItem(ADMIN_ACCESS_KEY_STORAGE_KEY, key.trim());
+  }
+}
+
 export function parseAdminConnectionUrl(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return { apiBase: "", adminAccessKey: "" };

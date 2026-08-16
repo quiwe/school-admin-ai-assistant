@@ -2,6 +2,7 @@ import httpx
 from openai import OpenAI
 from sqlalchemy.orm import Session
 
+from .redact import safe_error_message
 from .runtime_config import (
     PROVIDER_MAP,
     get_provider_api_key,
@@ -42,7 +43,7 @@ def discover_openai_compatible_models(base_url: str, api_key: str | None) -> lis
         models = [model.id for model in response.data if model.id]
         return sorted(set(models), key=models.index)
     except Exception as exc:
-        raise ModelDiscoveryError(f"模型列表获取失败，请检查 API Key、Base URL 或该服务是否支持 /models：{exc}") from exc
+        raise ModelDiscoveryError(f"模型列表获取失败，请检查 API Key、Base URL 或该服务是否支持 /models：{safe_error_message(exc)}") from exc
 
 
 def discover_ollama_models(base_url: str) -> list[str]:
@@ -54,7 +55,7 @@ def discover_ollama_models(base_url: str) -> list[str]:
         models = [item.get("name", "") for item in data.get("models", []) if item.get("name")]
         return sorted(set(models), key=models.index)
     except Exception as exc:
-        raise ModelDiscoveryError(f"Ollama 模型列表获取失败，请确认 Ollama 已启动：{exc}") from exc
+        raise ModelDiscoveryError(f"Ollama 模型列表获取失败，请确认 Ollama 已启动：{safe_error_message(exc)}") from exc
 
 
 def discover_anthropic_models(base_url: str, api_key: str | None) -> list[str]:
@@ -78,8 +79,9 @@ def discover_gemini_models(base_url: str, api_key: str | None) -> list[str]:
     if not api_key:
         return ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.5-flash-lite"]
     try:
+        headers = {"x-goog-api-key": api_key} if api_key else {}
         with httpx.Client(timeout=20) as client:
-            response = client.get(f"{base_url.rstrip('/')}/models", params={"key": api_key})
+            response = client.get(f"{base_url.rstrip('/')}/models", headers=headers)
             response.raise_for_status()
             data = response.json()
         models = [

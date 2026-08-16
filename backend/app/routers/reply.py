@@ -1,5 +1,3 @@
-import re
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -8,6 +6,7 @@ from ..schemas import GenerateReplyRequest, GenerateReplyResponse, Reference, Re
 from ..services.ai_provider import ai_provider
 from ..services.classifier import classify_question
 from ..services.rag import confidence_from_references, retrieve_references
+from ..services.redact import safe_error_message
 from ..services.runtime_config import get_ai_config
 from ..services.safety import HUMAN_REVIEW_TEMPLATE, detect_sensitive
 
@@ -115,13 +114,6 @@ def rewrite_reply(payload: RewriteReplyRequest, db: Session = Depends(get_db)):
     except Exception:
         answer = local_rewrite(payload.answer, payload.style)
         return RewriteReplyResponse(answer=answer.strip(), ai_used=False)
-
-
-def safe_error_message(exc: Exception) -> str:
-    message = str(exc)
-    message = re.sub(r"sk-[A-Za-z0-9_-]{6,}", "sk-***", message)
-    message = re.sub(r"([A-Za-z0-9_-]{4})[A-Za-z0-9_-]{12,}", r"\1***", message)
-    return message[:500]
 
 
 def local_rewrite(answer: str, style: str) -> str:

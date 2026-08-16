@@ -2,6 +2,7 @@ import { Clipboard, Search, Star, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, HistoryItem } from "../api/client";
 import { Button, Input, Panel, Select } from "../components/ui";
+import { copyToClipboard } from "../utils/clipboard";
 import { displayText, previewText } from "../utils/text";
 
 const questionCategories = ["流程类", "材料类", "时间类", "系统类", "学籍类", "奖助学金类", "论文答辩类", "个人隐私类", "投诉申诉类", "其他"];
@@ -156,7 +157,7 @@ export default function HistoryPage() {
               </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button onClick={() => navigator.clipboard.writeText(item.final_answer || item.ai_answer)}>
+              <Button onClick={() => { void copyToClipboard(item.final_answer || item.ai_answer); }}>
                 <Clipboard size={15} />
                 <span className="hidden sm:inline">复制历史回复</span>
                 <span className="sm:hidden">复制</span>

@@ -13,6 +13,7 @@ from ..models import FAQItem
 from ..schemas import FAQCreate, FAQImportResponse, FAQRead, FAQUpdate
 from ..services.file_parser import FileParseError, extract_faq_rows_from_spreadsheet
 from ..services.rag import similarity_score
+from ..services.uploads import read_upload_limited
 
 router = APIRouter(prefix="/api/faq", tags=["faq"])
 
@@ -59,7 +60,7 @@ async def import_faq(file: UploadFile = File(...), db: Session = Depends(get_db)
     if suffix not in FAQ_EXCEL_EXTENSIONS:
         raise HTTPException(status_code=400, detail="仅支持 XLS 或 XLSX FAQ 文件。")
 
-    content = await file.read()
+    content = await read_upload_limited(file)
     if not content:
         raise HTTPException(status_code=400, detail="上传文件为空。")
 
@@ -79,12 +80,23 @@ async def import_faq(file: UploadFile = File(...), db: Session = Depends(get_db)
     if not rows:
         raise HTTPException(status_code=400, detail="未识别到 FAQ 数据。请确认表头包含“问题”和“答案”，可选“分类”。")
 
+    # 一次性加载全部已有 FAQ，避免逐行重复查询 + 重复打分。
+    existing_faqs = db.query(FAQItem).all()
+    existing_pairs = [(item.question, f"{item.question}\n{item.answer}") for item in existing_faqs]
+
     imported = 0
     skipped_duplicates = 0
     seen_questions: list[str] = []
     for row in rows:
         question = row["question"]
-        if is_duplicate_question(db, question) or any(similarity_score(question, seen) >= FAQ_DUPLICATE_THRESHOLD for seen in seen_questions):
+        is_duplicate = any(
+            max(similarity_score(question, q), similarity_score(question, qa) * 0.88)
+            >= FAQ_DUPLICATE_THRESHOLD
+            for q, qa in existing_pairs
+        ) or any(
+            similarity_score(question, seen) >= FAQ_DUPLICATE_THRESHOLD for seen in seen_questions
+        )
+        if is_duplicate:
             skipped_duplicates += 1
             continue
         db.add(

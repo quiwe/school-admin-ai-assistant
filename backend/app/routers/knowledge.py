@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from uuid import uuid4
 
@@ -14,9 +15,11 @@ from ..services.file_parser import (
     parse_file,
 )
 from ..services.rag import chunk_text
+from ..services.uploads import read_upload_limited
 from ..settings import settings
 
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/upload", response_model=KnowledgeFileRead)
@@ -34,29 +37,40 @@ async def upload_knowledge(
 
     stored_name = f"{uuid4().hex}{suffix}"
     stored_path = upload_dir / stored_name
-    content = await file.read()
+    content = await read_upload_limited(file)
     stored_path.write_bytes(content)
 
+    # 先全部解析成功再入库；解析失败要清理落盘文件，避免磁盘残留。
     try:
         parsed_text = parse_file(stored_path)
+        faq_rows = (
+            extract_faq_rows_from_spreadsheet(stored_path)
+            if import_faq and suffix in {".xlsx", ".xls"}
+            else []
+        )
     except FileParseError as exc:
+        stored_path.unlink(missing_ok=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        stored_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail=f"文件解析失败：{exc}") from exc
 
-    chunks = chunk_text(parsed_text)
-    record = KnowledgeFile(
-        filename=file.filename or stored_name,
-        category=category,
-        parsed_text=parsed_text,
-        chunk_count=len(chunks),
-        status="indexed" if chunks else "empty",
-    )
-    db.add(record)
-    db.flush()
-    for index, chunk in enumerate(chunks):
-        db.add(KnowledgeChunk(file_id=record.id, chunk_text=chunk, chunk_index=index, embedding_id=None))
+    try:
+        chunks = chunk_text(parsed_text)
+        record = KnowledgeFile(
+            filename=file.filename or stored_name,
+            stored_name=stored_name,
+            category=category,
+            parsed_text=parsed_text,
+            chunk_count=len(chunks),
+            status="indexed" if chunks else "empty",
+        )
+        db.add(record)
+        db.flush()
+        for index, chunk in enumerate(chunks):
+            db.add(KnowledgeChunk(file_id=record.id, chunk_text=chunk, chunk_index=index, embedding_id=None))
 
-    if import_faq and suffix in {".xlsx", ".xls"}:
-        for row in extract_faq_rows_from_spreadsheet(stored_path):
+        for row in faq_rows:
             db.add(
                 FAQItem(
                     question=row["question"],
@@ -66,8 +80,12 @@ async def upload_knowledge(
                 )
             )
 
-    db.commit()
-    db.refresh(record)
+        db.commit()
+        db.refresh(record)
+    except Exception as exc:
+        stored_path.unlink(missing_ok=True)
+        logger.exception("知识库入库失败")
+        raise HTTPException(status_code=500, detail=f"知识库保存失败：{exc}") from exc
     return record
 
 
@@ -84,8 +102,11 @@ def delete_knowledge(file_id: int, db: Session = Depends(get_db)):
     record = db.query(KnowledgeFile).filter(KnowledgeFile.id == file_id).first()
     if not record:
         raise HTTPException(status_code=404, detail="知识库文件不存在。")
+    stored_name = record.stored_name
     db.delete(record)
     db.commit()
+    if stored_name:
+        (Path(settings.upload_dir) / stored_name).unlink(missing_ok=True)
     return {"ok": True}
 
 

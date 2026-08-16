@@ -144,9 +144,9 @@ class QQBotService:
                         self._session_id = str(data.get("session_id") or "")
                         logger.info("QQ bot is online.")
                     elif event_type == "C2C_MESSAGE_CREATE":
-                        await self._handle_private_message(config, data)
+                        await self._handle_safely(self._handle_private_message, config, data)
                     elif event_type == "GROUP_AT_MESSAGE_CREATE":
-                        await self._handle_group_at_message(config, data)
+                        await self._handle_safely(self._handle_group_at_message, config, data)
                     elif event_type == "GROUP_ADD_ROBOT":
                         logger.info("QQ bot added to group: %s", data.get("group_openid", ""))
                     elif event_type == "GROUP_DEL_ROBOT":
@@ -195,6 +195,15 @@ class QQBotService:
             )
         )
 
+    async def _handle_safely(self, handler: Any, config: QQConfig, data: dict[str, Any]) -> None:
+        """隔离单条消息处理失败，避免异常冒泡导致整个 WebSocket 连接崩溃重连。"""
+        try:
+            await handler(config, data)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("QQ bot message handler failed; keeping connection alive.")
+
     async def _handle_private_message(self, config: QQConfig, data: dict[str, Any]) -> None:
         message_id = str(data.get("id") or "")
         if message_id and not self._remember_message(message_id):
@@ -233,7 +242,14 @@ class QQBotService:
             return openid == self._runtime_bound_openid
         if allow_auto_bind:
             self._runtime_bound_openid = openid
-        return True
+            logger.warning(
+                "QQ bot 未配置 owner/allowlist，已自动绑定首个私聊用户 %s 为运行期 owner，建议尽快在设置中显式配置。",
+                openid,
+            )
+            return True
+        # 群聊等场景不再无条件放行：未配置 owner/allowlist 时默认拒绝，避免陌生人查询知识库。
+        logger.warning("QQ bot 群消息被拒绝：未配置 owner/allowlist。")
+        return False
 
     def _generate_answer(self, question: str) -> str:
         with SessionLocal() as db:
@@ -333,6 +349,8 @@ def split_message(text: str, max_bytes: int = MAX_MESSAGE_BYTES) -> list[str]:
                 break
             current += char
             current_bytes += char_bytes
+        if not current:
+            break
         split_at = max(current.rfind("\n"), current.rfind(" "))
         if split_at > len(current) * 0.6:
             current = current[:split_at]

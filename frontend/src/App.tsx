@@ -61,6 +61,14 @@ const nav = [
 ];
 
 export default function App() {
+  // 连接信息（API 地址 / 管理员访问码）变化时重新渲染，用于 Android 连接页保存后切换进主界面。
+  const [, setConnectionVersion] = useState(0);
+  useEffect(() => {
+    const handleConnectionChanged = () => setConnectionVersion((version) => version + 1);
+    window.addEventListener("app:api-connection-changed", handleConnectionChanged);
+    return () => window.removeEventListener("app:api-connection-changed", handleConnectionChanged);
+  }, []);
+
   const pathname = window.location.pathname.replace(/\/$/, "");
   if (pathname === "/student-chat") {
     return <ErrorBoundary><Suspense fallback={<PageLoading />}><StudentChat /></Suspense></ErrorBoundary>;

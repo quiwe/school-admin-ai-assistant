@@ -26,6 +26,7 @@ from ..services.autostart import get_status as get_autostart_status
 from ..services.autostart import set_preference_and_apply
 from ..services.ai_provider import ai_provider
 from ..services.model_discovery import ModelDiscoveryError, discover_models
+from ..services.redact import safe_error_message
 from ..services.qq_bot import qq_bot_service
 from ..services.qq_config import load_qq_config, save_qq_config
 from ..services.wecom_bot import wecom_bot_service
@@ -82,7 +83,7 @@ def test_ai_provider(payload: AIProviderTestRequest, db: Session = Depends(get_d
         text = ai_provider._chat("请回复“连接测试成功”，不要输出其他内容。", config).text
     except Exception as exc:
         latency_ms = int((time.perf_counter() - started) * 1000)
-        raise HTTPException(status_code=400, detail=f"模型测试失败：{exc}，耗时 {latency_ms} ms") from exc
+        raise HTTPException(status_code=400, detail=f"模型测试失败：{safe_error_message(exc)}，耗时 {latency_ms} ms") from exc
     latency_ms = int((time.perf_counter() - started) * 1000)
     return AIProviderTestResponse(
         ok=True,

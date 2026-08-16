@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+import zipfile
 
 import olefile
 import xlrd
@@ -14,6 +15,27 @@ class FileParseError(ValueError):
 
 
 SUPPORTED_EXTENSIONS = {".pdf", ".doc", ".docx", ".ppt", ".pptx", ".txt", ".xls", ".xlsx"}
+
+# 解析上限，防止恶意/异常文件导致内存耗尽或输出失控。
+MAX_PDF_PAGES = 200
+MAX_SHEET_ROWS = 5000
+MAX_SHEET_COLS = 100
+MAX_ZIP_UNCOMPRESSED_BYTES = 200 * 1024 * 1024  # 200 MB
+MAX_LEGACY_STREAM_BYTES = 20 * 1024 * 1024  # 20 MB
+MAX_TXT_BYTES = 10 * 1024 * 1024  # 10 MB
+
+TRUNCATED_MARKER = "（内容过多，已截断）"
+
+
+def _check_zip_safety(path: Path) -> None:
+    """Office 新格式是 ZIP 包，解压前检查总解压体积，防止 zip 炸弹。"""
+    try:
+        with zipfile.ZipFile(str(path)) as archive:
+            total = sum(info.file_size for info in archive.infolist())
+    except zipfile.BadZipFile as exc:
+        raise FileParseError(f"文件不是有效的 Office 文档：{exc}") from exc
+    if total > MAX_ZIP_UNCOMPRESSED_BYTES:
+        raise FileParseError("文件解压后体积过大，可能为异常压缩文件，请检查后重新上传。")
 
 
 def parse_file(path: Path) -> str:
@@ -34,7 +56,10 @@ def parse_file(path: Path) -> str:
         if suffix == ".xlsx":
             return parse_xlsx(path)
         if suffix == ".txt":
-            return path.read_text(encoding="utf-8-sig")
+            data = path.read_bytes()
+            if len(data) > MAX_TXT_BYTES:
+                raise FileParseError("TXT 文件过大，请上传不超过 10 MB 的文本文件。")
+            return data.decode("utf-8-sig", errors="replace")
     except FileParseError:
         raise
     except Exception as exc:
@@ -46,6 +71,9 @@ def parse_pdf(path: Path) -> str:
     reader = PdfReader(str(path))
     pages = []
     for index, page in enumerate(reader.pages, start=1):
+        if index > MAX_PDF_PAGES:
+            pages.append(TRUNCATED_MARKER)
+            break
         text = page.extract_text() or ""
         if text.strip():
             pages.append(f"第{index}页\n{text.strip()}")
@@ -53,6 +81,7 @@ def parse_pdf(path: Path) -> str:
 
 
 def parse_docx(path: Path) -> str:
+    _check_zip_safety(path)
     doc = Document(str(path))
     paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
     for table in doc.tables:
@@ -64,6 +93,7 @@ def parse_docx(path: Path) -> str:
 
 
 def parse_pptx(path: Path) -> str:
+    _check_zip_safety(path)
     presentation = Presentation(str(path))
     lines: list[str] = []
     for slide_index, slide in enumerate(presentation.slides, start=1):
@@ -93,27 +123,44 @@ def parse_xls(path: Path) -> str:
     lines: list[str] = []
     for sheet in workbook.sheets():
         lines.append(f"工作表：{sheet.name}")
-        for row_index in range(sheet.nrows):
+        col_count = min(sheet.ncols, MAX_SHEET_COLS)
+        row_count = min(sheet.nrows, MAX_SHEET_ROWS)
+        for row_index in range(row_count):
             values = [
                 format_xls_cell(workbook, sheet.cell(row_index, col_index))
-                for col_index in range(sheet.ncols)
+                for col_index in range(col_count)
             ]
             values = [value for value in values if value]
             if values:
                 lines.append(" | ".join(values))
+        if sheet.nrows > MAX_SHEET_ROWS:
+            lines.append(TRUNCATED_MARKER)
     return "\n".join(lines).strip()
 
 
 def parse_xlsx(path: Path) -> str:
-    workbook = load_workbook(str(path), data_only=True)
-    lines: list[str] = []
-    for sheet in workbook.worksheets:
-        lines.append(f"工作表：{sheet.title}")
-        for row in sheet.iter_rows(values_only=True):
-            values = [str(value).strip() for value in row if value is not None and str(value).strip()]
-            if values:
-                lines.append(" | ".join(values))
-    return "\n".join(lines).strip()
+    _check_zip_safety(path)
+    workbook = load_workbook(str(path), data_only=True, read_only=True)
+    try:
+        lines: list[str] = []
+        for sheet in workbook.worksheets:
+            lines.append(f"工作表：{sheet.title}")
+            row_count = 0
+            for row in sheet.iter_rows(values_only=True):
+                if row_count >= MAX_SHEET_ROWS:
+                    lines.append(TRUNCATED_MARKER)
+                    break
+                values = [
+                    str(value).strip()
+                    for value in row[:MAX_SHEET_COLS]
+                    if value is not None and str(value).strip()
+                ]
+                if values:
+                    lines.append(" | ".join(values))
+                row_count += 1
+        return "\n".join(lines).strip()
+    finally:
+        workbook.close()
 
 
 def parse_legacy_office(path: Path, label: str) -> str:
@@ -126,8 +173,10 @@ def parse_legacy_office(path: Path, label: str) -> str:
             stream_name = "/".join(entry)
             try:
                 with ole.openstream(entry) as stream:
-                    data = stream.read()
+                    data = stream.read(MAX_LEGACY_STREAM_BYTES + 1)
             except Exception:
+                continue
+            if len(data) > MAX_LEGACY_STREAM_BYTES:
                 continue
             text = extract_readable_text(data)
             if text:
@@ -202,30 +251,40 @@ def extract_faq_rows_from_spreadsheet(path: Path) -> list[dict[str, str]]:
 
 
 def extract_faq_rows_from_xlsx(path: Path) -> list[dict[str, str]]:
-    workbook = load_workbook(str(path), data_only=True)
+    _check_zip_safety(path)
+    workbook = load_workbook(str(path), data_only=True, read_only=True)
     rows: list[dict[str, str]] = []
-    for sheet in workbook.worksheets:
-        values = list(sheet.iter_rows(values_only=True))
-        if not values:
-            continue
-        headers = [str(cell).strip() if cell is not None else "" for cell in values[0]]
-        question_index = find_header(headers, ["问题", "question"])
-        answer_index = find_header(headers, ["答案", "answer"])
-        category_index = find_header(headers, ["分类", "category"])
-        if question_index is None or answer_index is None:
-            continue
-        for raw_row in values[1:]:
-            question = safe_cell(raw_row, question_index)
-            answer = safe_cell(raw_row, answer_index)
-            if question and answer:
-                rows.append(
-                    {
-                        "question": question,
-                        "answer": answer,
-                        "category": safe_cell(raw_row, category_index) if category_index is not None else "其他",
-                    }
-                )
-    return rows
+    try:
+        for sheet in workbook.worksheets:
+            question_index = answer_index = category_index = None
+            row_count = 0
+            for raw_row in sheet.iter_rows(values_only=True):
+                if row_count >= MAX_SHEET_ROWS:
+                    break
+                values = tuple(raw_row[:MAX_SHEET_COLS])
+                if row_count == 0:
+                    headers = [str(cell).strip() if cell is not None else "" for cell in values]
+                    question_index = find_header(headers, ["问题", "question"])
+                    answer_index = find_header(headers, ["答案", "answer"])
+                    category_index = find_header(headers, ["分类", "category"])
+                    if question_index is None or answer_index is None:
+                        break
+                    row_count += 1
+                    continue
+                question = safe_cell(values, question_index)
+                answer = safe_cell(values, answer_index)
+                if question and answer:
+                    rows.append(
+                        {
+                            "question": question,
+                            "answer": answer,
+                            "category": safe_cell(values, category_index) if category_index is not None else "其他",
+                        }
+                    )
+                row_count += 1
+        return rows
+    finally:
+        workbook.close()
 
 
 def extract_faq_rows_from_xls(path: Path) -> list[dict[str, str]]:

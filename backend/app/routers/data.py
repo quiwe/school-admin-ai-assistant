@@ -10,9 +10,20 @@ from ..database import get_db
 from ..models import FAQItem, KnowledgeChunk, KnowledgeFile, ReplyHistory, Setting
 from ..schemas import BackupImportResponse
 from ..services.rag import chunk_text
+from ..services.uploads import read_upload_limited
 from .faq import is_duplicate_question
 
 router = APIRouter(prefix="/api/data", tags=["data"])
+
+
+def _is_secret_setting_key(key: str) -> bool:
+    """设置项中属于密钥/凭据的 key，导出与导入时都应跳过，避免明文泄露。"""
+    return (
+        key.endswith("_api_key")
+        or key.endswith("_secret")
+        or key.endswith("_token")
+        or key.endswith("_password")
+    )
 
 
 @router.get("/export")
@@ -52,7 +63,7 @@ def export_data(db: Session = Depends(get_db)):
         "settings": [
             {"key": item.key, "value": item.value}
             for item in db.query(Setting).order_by(Setting.key.asc()).all()
-            if not item.key.endswith("_api_key") and item.key not in {"openai_api_key"}
+            if not _is_secret_setting_key(item.key)
         ],
     }
     data = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
@@ -66,7 +77,7 @@ def export_data(db: Session = Depends(get_db)):
 
 @router.post("/import", response_model=BackupImportResponse)
 async def import_data(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    content = await file.read()
+    content = await read_upload_limited(file)
     if not content:
         raise HTTPException(status_code=400, detail="备份文件为空。")
     try:
@@ -140,7 +151,7 @@ async def import_data(file: UploadFile = File(...), db: Session = Depends(get_db
     for row in payload.get("settings") or []:
         key = str(row.get("key") or "").strip()
         value = str(row.get("value") or "")
-        if not key or key.endswith("_api_key") or key == "openai_api_key":
+        if not key or _is_secret_setting_key(key):
             continue
         record = db.query(Setting).filter(Setting.key == key).first()
         if record:

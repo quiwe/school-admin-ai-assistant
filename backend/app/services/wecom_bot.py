@@ -20,6 +20,9 @@ class WeComBotService:
         self._processed_ids: list[str] = []
         self._running = False
         self._last_error: str | None = None
+        # 限制并发消息处理，避免消息洪峰时线程/SQLite 连接被耗尽。
+        self._semaphore = asyncio.Semaphore(4)
+        self._handler_tasks: set[asyncio.Task[None]] = set()
 
     def is_running(self) -> bool:
         return self._running and self._client is not None and self._client.is_connected
@@ -81,7 +84,12 @@ class WeComBotService:
 
         @client.on("message.text")
         async def on_text(frame):
-            asyncio.ensure_future(self._handle_text_message(frame))
+            self._spawn_handler(frame)
+
+    def _spawn_handler(self, frame: dict) -> None:
+        task = asyncio.ensure_future(self._handle_text_message(frame))
+        self._handler_tasks.add(task)
+        task.add_done_callback(self._handler_tasks.discard)
 
     async def _run(self) -> None:
         if not self._client:
@@ -95,13 +103,24 @@ class WeComBotService:
             self._last_error = "企业微信连接失败，详情请查看日志。"
 
     async def _handle_text_message(self, frame: dict) -> None:
+        try:
+            async with self._semaphore:
+                await self._process_text_message(frame)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("WeCom bot message handler failed.")
+
+    async def _process_text_message(self, frame: dict) -> None:
         body = frame.get("body", {})
         msg_id = body.get("msgid", "")
         if msg_id and not self._remember_message(msg_id):
             return
 
-        sender_id = (body.get("from") or {}).get("userid", "")
-        content = (body.get("text") or {}).get("content", "").strip()
+        sender = body.get("from")
+        sender_id = (sender.get("userid", "") if isinstance(sender, dict) else "").strip()
+        text = body.get("text")
+        content = (text.get("content", "") if isinstance(text, dict) else "").strip()
 
         if not content or not sender_id:
             return
@@ -157,6 +176,10 @@ class WeComBotService:
         if self._task:
             self._task.cancel()
             self._task = None
+        # 取消尚未完成的消息处理任务，避免重启后在旧连接上继续写历史/回复。
+        for task in list(self._handler_tasks):
+            task.cancel()
+        self._handler_tasks.clear()
         self._client = None
         self._running = False
 

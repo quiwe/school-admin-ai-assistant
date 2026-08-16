@@ -150,8 +150,9 @@ class AIProvider:
             "generationConfig": {"temperature": 0.2},
         }
         url = f"{config.base_url.rstrip('/')}/models/{config.model}:generateContent"
+        headers = {"x-goog-api-key": config.api_key} if config.api_key else {}
         with httpx.Client(timeout=90) as client:
-            response = client.post(url, params={"key": config.api_key}, json=payload)
+            response = client.post(url, headers=headers, json=payload)
             response.raise_for_status()
             data = response.json()
         candidates = data.get("candidates") or []

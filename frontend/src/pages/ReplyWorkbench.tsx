@@ -2,6 +2,7 @@ import { AlertCircle, Check, Clipboard, Eraser, RefreshCw, Save, Wand2 } from "l
 import { useEffect, useState } from "react";
 import { api, CostStats, Reference, ReplyResponse } from "../api/client";
 import { Button, Panel, PrimaryButton, Textarea } from "../components/ui";
+import { copyToClipboard } from "../utils/clipboard";
 
 export default function ReplyWorkbench() {
   const [question, setQuestion] = useState("");
@@ -100,7 +101,7 @@ export default function ReplyWorkbench() {
   }
 
   async function copyAnswer() {
-    await navigator.clipboard.writeText(answer);
+    await copyToClipboard(answer);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }

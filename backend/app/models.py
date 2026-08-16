@@ -1,9 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
+
+
+def _now_utc() -> datetime:
+    """返回 naive UTC 时间，等价于已弃用的 datetime.utcnow()。"""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class KnowledgeFile(Base):
@@ -11,9 +16,10 @@ class KnowledgeFile(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    stored_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     category: Mapped[str] = mapped_column(String(50), default="其他", index=True)
     parsed_text: Mapped[str] = mapped_column(Text, default="")
-    upload_time: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    upload_time: Mapped[datetime] = mapped_column(DateTime, default=_now_utc)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(50), default="indexed")
 
@@ -45,8 +51,8 @@ class FAQItem(Base):
     answer: Mapped[str] = mapped_column(Text, nullable=False)
     category: Mapped[str] = mapped_column(String(50), default="其他", index=True)
     allow_auto_reply: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=lambda: datetime.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc, onupdate=_now_utc)
 
 
 class ReplyHistory(Base):
@@ -64,7 +70,7 @@ class ReplyHistory(Base):
     need_human_review: Mapped[bool] = mapped_column(Boolean, default=False)
     cost_cny: Mapped[float | None] = mapped_column(Float, nullable=True, default=None)
     cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True, default=None)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc)
 
 
 class Setting(Base):
