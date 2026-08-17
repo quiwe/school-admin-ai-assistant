@@ -53,12 +53,12 @@ jobs:
       run: |
         cd frontend/android
         chmod +x gradlew
-        ./gradlew assembleDebug
+        ./gradlew assembleDebug --stacktrace
         
     - name: Build Release APK
       run: |
         cd frontend/android
-        ./gradlew assembleRelease
+        ./gradlew assembleRelease --stacktrace
         
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
