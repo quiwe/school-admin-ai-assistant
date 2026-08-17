@@ -116,7 +116,7 @@ macOS 安装版首次运行后会创建当前用户的 LaunchAgent，实现开�
 - APK 文件：`SchoolAdminAIAssistant-Android-v版本号.apk`
 - GitHub Release：把 `.apk` 上传到 `v版本号` Release 附件。
 
-Android APK 通过局域网连接桌面端服务。老师先在桌面端打开“系统设置 - 移动端 / APK 连接”，复制完整管理地址；Android 首次打开时粘贴该地址，即可使用同一套知识库、FAQ、历史记录和模型配置。
+Android APK 为独立运行模式：APK 内置完整的 Kotlin 后端服务和本地数据库，无需连接桌面端，安装后打开即可使用。数据全部存储在手机本地，支持回复工作台、知识库管理、FAQ 管理、历史记录、系统设置和数据备份恢复等完整功能。
 
 ## 国内更新源
 
