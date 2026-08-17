@@ -286,7 +286,7 @@ class AppServer(
         val status = if (trimmed.startsWith("{\"detail\"")) Response.Status.BAD_REQUEST else Response.Status.OK
         return newFixedLengthResponse(
             status,
-            "application/json",
+            "application/json; charset=utf-8",
             content
         )
     }
@@ -295,7 +295,7 @@ class AppServer(
         val body = """{"detail":"${message.replace("\"", "\\\"")}"}"""
         return newFixedLengthResponse(
             Response.Status.lookup(status),
-            "application/json",
+            "application/json; charset=utf-8",
             body
         )
     }
