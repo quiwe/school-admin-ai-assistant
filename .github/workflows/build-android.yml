@@ -47,17 +47,18 @@ jobs:
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2
       with:
-        gradle-version: '8.5'
+        gradle-version: '8.11.1'
         
     - name: Build Debug APK
       run: |
         cd frontend/android
-        gradle assembleDebug
+        chmod +x gradlew
+        ./gradlew assembleDebug
         
     - name: Build Release APK
       run: |
         cd frontend/android
-        gradle assembleRelease
+        ./gradlew assembleRelease
         
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
