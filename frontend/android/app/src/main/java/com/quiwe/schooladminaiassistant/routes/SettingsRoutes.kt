@@ -80,7 +80,7 @@ class SettingsRoutes(
         val models = try {
             discoverModels(preset, baseUrl, apiKey)
         } catch (e: Exception) {
-            return """{"detail":"${e.message}"}"""
+            return """{"detail":"${ReplyService.safeErrorMessage(e)}"}"""
         }
         val source = if (models.isNotEmpty()) "api" else "preset"
         val res = AIModelListResponse(models = models, source = source)
@@ -123,7 +123,7 @@ class SettingsRoutes(
             val latency = System.currentTimeMillis() - start
             val res = AIProviderTestResponse(
                 ok = false,
-                message = e.message ?: "连接失败",
+                message = ReplyService.safeErrorMessage(e),
                 latencyMs = latency
             )
             apiJson.encodeToString(AIProviderTestResponse.serializer(), res)

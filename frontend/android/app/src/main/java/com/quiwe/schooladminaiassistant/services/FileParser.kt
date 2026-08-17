@@ -15,8 +15,33 @@ object FileParser {
         RegexOption.IGNORE_CASE
     )
 
+    const val MAX_UPLOAD_BYTES = 20L * 1024 * 1024 // 20 MB
+    private const val MAX_ZIP_UNCOMPRESSED_BYTES = 200L * 1024 * 1024 // 200 MB
+    private const val MAX_PDF_PAGES = 200
+    private const val MAX_SHEET_ROWS = 5000
+    private const val MAX_TXT_BYTES = 10L * 1024 * 1024 // 10 MB
+
     fun init(context: Context) {
         PDFBoxResourceLoader.init(context)
+    }
+
+    fun validateFileSize(path: String) {
+        val size = File(path).length()
+        if (size > MAX_UPLOAD_BYTES) {
+            throw IOException("文件过大，请上传不超过 20MB 的文件。")
+        }
+    }
+
+    private fun checkZipSafety(path: String) {
+        ZipFile(path).use { zip ->
+            var total = 0L
+            for (entry in zip.entries()) {
+                total += entry.size
+                if (total > MAX_ZIP_UNCOMPRESSED_BYTES) {
+                    throw IOException("文件解压后体积过大，请检查后重新上传。")
+                }
+            }
+        }
     }
 
     fun parseFile(context: Context, filePath: String, originalName: String? = null): String {
@@ -36,16 +61,21 @@ object FileParser {
 
     private fun parsePdf(path: String): String {
         PDDocument.load(File(path)).use { doc ->
+            if (doc.numberOfPages > MAX_PDF_PAGES) {
+                throw IOException("PDF 页数过多（超过 $MAX_PDF_PAGES 页），请拆分后上传。")
+            }
             val stripper = PDFTextStripper()
             return stripper.getText(doc).trim()
         }
     }
 
     private fun parseDocx(path: String): String {
+        checkZipSafety(path)
         return extractDocxXmlText(path)
     }
 
     private fun parsePptx(path: String): String {
+        checkZipSafety(path)
         val sb = StringBuilder()
         ZipFile(path).use { zip ->
             for (entry in zip.entries()) {
@@ -97,6 +127,7 @@ object FileParser {
     }
 
     private fun parseXlsx(path: String): String {
+        checkZipSafety(path)
         val sb = StringBuilder()
         ZipFile(path).use { zip ->
             val sharedStrings = mutableListOf<String>()
@@ -116,10 +147,15 @@ object FileParser {
                     zip.getInputStream(entry).use { stream ->
                         val xmlText = stream.bufferedReader().readText()
                         val rowRegex = Regex("<row[^>]*>.*?</row>", RegexOption.DOT_MATCHES_ALL)
+                        val cellRegex = Regex("<c[^>]*>.*?</c>", RegexOption.DOT_MATCHES_ALL)
+                        var rowCount = 0
                         for (rowMatch in rowRegex.findAll(xmlText)) {
+                            if (rowCount >= MAX_SHEET_ROWS) {
+                                sb.append("（行数过多，已截断）\n")
+                                break
+                            }
                             val rowText = rowMatch.value
-                            val cellRegex = Regex("<c[^>]*>.*?</c>", RegexOption.DOT_MATCHES_ALL)
-                            val cells = cellRegex.findAll(xmlText).mapNotNull { cellMatch ->
+                            val cells = cellRegex.findAll(rowText).mapNotNull { cellMatch ->
                                 val cell = cellMatch.value
                                 val cellText = when {
                                     Regex("t=\"s\"").containsMatchIn(cell) -> {
@@ -140,6 +176,7 @@ object FileParser {
                                 sb.append(cells.joinToString("\t"))
                                 sb.append("\n")
                             }
+                            rowCount++
                         }
                     }
                 }
@@ -149,7 +186,11 @@ object FileParser {
     }
 
     private fun parseTxt(path: String): String {
-        val bytes = File(path).readBytes()
+        val file = File(path)
+        if (file.length() > MAX_TXT_BYTES) {
+            throw IOException("TXT 文件过大，请上传不超过 10MB 的文件。")
+        }
+        val bytes = file.readBytes()
         val utf8 = bytes.toString(Charsets.UTF_8).trim()
         if (!looksMojibake(utf8)) return utf8
         return bytes.toString(Charset.forName("GBK")).trim()

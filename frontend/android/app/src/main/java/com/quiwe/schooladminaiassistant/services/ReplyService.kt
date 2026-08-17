@@ -135,6 +135,8 @@ class ReplyService(
         fun safeErrorMessage(e: Exception): String {
             val msg = (e.message ?: "未知错误")
                 .replace(Regex("sk-[A-Za-z0-9_-]{6,}"), "sk-***")
+                .replace(Regex("\\bAIza[A-Za-z0-9_-]{20,}\\b"), "AIza***")
+                .replace(Regex("(?i)\\b(key|api_key|token|secret|access_key|admin_key|password)=([^&\\s'\"]{8,})"), "$1=***")
                 .replace(Regex("([A-Za-z0-9_-]{4})[A-Za-z0-9_-]{12,}"), "$1***")
             return msg.take(500)
         }

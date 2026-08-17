@@ -215,9 +215,10 @@ class AiProviderService {
             }
         }
 
-        val url = "${config.baseUrl.trimEnd('/')}/models/${config.model}:generateContent?key=$apiKey"
+        val url = "${config.baseUrl.trimEnd('/')}/models/${config.model}:generateContent"
         val request = Request.Builder()
             .url(url)
+            .header("x-goog-api-key", apiKey)
             .post(body.toString().toRequestBody(jsonMediaType))
             .build()
 

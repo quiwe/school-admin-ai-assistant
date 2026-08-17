@@ -59,30 +59,36 @@ object RagService {
         return tokens
     }
 
-    fun bm25Score(query: String, document: String): Double {
-        val qTerms = tokenize(query)
-        val dTerms = tokenize(document)
+    private fun bm25ScoreTokens(qTerms: List<String>, dTerms: List<String>): Double {
         if (qTerms.isEmpty() || dTerms.isEmpty()) return 0.0
         val docLen = dTerms.size
         val frequencies = dTerms.groupingBy { it }.eachCount()
+        val qSet = qTerms.toSet()
         var score = 0.0
-        for (term in qTerms.toSet()) {
+        for (term in qSet) {
             val tf = frequencies[term] ?: 0
             if (tf > 0) {
                 score += (tf * 2.2) / (tf + 1.2 * (0.25 + 0.75 * docLen / 120.0))
             }
         }
-        return score / sqrt(max(qTerms.toSet().size.toDouble(), 1.0))
+        return score / sqrt(max(qSet.size.toDouble(), 1.0))
+    }
+
+    fun bm25Score(query: String, document: String): Double {
+        return bm25ScoreTokens(tokenize(query), tokenize(document))
     }
 
     fun similarityScore(query: String, document: String): Double {
-        val bm25 = bm25Score(query, document)
-        val qTerms = tokenize(query).toSet()
-        val dTerms = tokenize(document).toSet()
-        if (qTerms.isEmpty() || dTerms.isEmpty()) return bm25
+        // 查询和文档各分词一次，避免原先在 bm25 与 overlap 两处重复分词。
+        val qTerms = tokenize(query)
+        val dTerms = tokenize(document)
+        if (qTerms.isEmpty() || dTerms.isEmpty()) return 0.0
 
-        val overlap = (qTerms intersect dTerms).size
-        val overlapScore = overlap / sqrt(max(qTerms.size.toDouble(), 1.0))
+        val bm25 = bm25ScoreTokens(qTerms, dTerms)
+        val qSet = qTerms.toSet()
+        val dSet = dTerms.toSet()
+        val overlap = (qSet intersect dSet).size
+        val overlapScore = overlap / sqrt(max(qSet.size.toDouble(), 1.0))
         val compactQuery = compactText(query)
         val compactDoc = compactText(document)
         var substringBonus = 0.0

@@ -78,16 +78,17 @@ class DataRoutes(
         var importedKnowledge = 0
         var importedHistory = 0
 
+        val existingQuestions = faqDao.listAll().map { it.question }.toMutableList()
         json["faq_items"]?.jsonArray?.forEach { item ->
             val q = item.jsonObject["question"]?.jsonPrimitive?.content ?: return@forEach
             val a = item.jsonObject["answer"]?.jsonPrimitive?.content ?: return@forEach
             val cat = item.jsonObject["category"]?.jsonPrimitive?.content ?: "其他"
             val auto = item.jsonObject["allow_auto_reply"]?.jsonPrimitive?.booleanOrNull ?: true
 
-            val existing = faqDao.listAll()
-            val dup = existing.any { RagService.similarityScore(q, it.question) > 0.85 }
+            val dup = existingQuestions.any { RagService.similarityScore(q, it) > 0.85 }
             if (dup) { skippedFaq++; return@forEach }
             faqDao.insert(FaqItemEntity(question = q, answer = a, category = cat, allowAutoReply = auto))
+            existingQuestions.add(q)
             importedFaq++
         }
 

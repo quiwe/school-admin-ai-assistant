@@ -24,6 +24,12 @@ class KnowledgeRoutes(
         val cat = category ?: "其他"
         val suffix = fname.lowercase().substringAfterLast('.', "")
 
+        try {
+            FileParser.validateFileSize(filePath)
+        } catch (e: Exception) {
+            return """{"detail":"${e.message}"}"""
+        }
+
         val parsedText = try {
             FileParser.parseFile(context, filePath, fname)
         } catch (e: Exception) {

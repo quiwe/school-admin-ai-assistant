@@ -77,14 +77,20 @@ class FaqRoutes(
 
     suspend fun import(filePath: String?, filename: String? = null): String {
         if (filePath == null) return """{"detail":"未提供文件"}"""
+        try {
+            FileParser.validateFileSize(filePath)
+        } catch (e: Exception) {
+            return """{"detail":"${e.message}"}"""
+        }
         val rows = FileParser.extractFaqRowsFromSpreadsheet(context, filePath, filename)
         if (rows.isEmpty()) return """{"detail":"未能从文件中提取到 FAQ 数据，请确保第一行为表头且包含「问题」「答案」列。"}"""
+        // 一次性加载全部已有 FAQ，避免逐行重复查询。
+        val existing = faqDao.listAll()
         var imported = 0
         var skipped = 0
         for (row in rows) {
             val q = row["question"] ?: continue
             val a = row["answer"] ?: continue
-            val existing = faqDao.listAll()
             val tooSimilar = existing.any { RagService.similarityScore(q, it.question) > 0.85 }
             if (tooSimilar) { skipped++; continue }
             faqDao.insert(
