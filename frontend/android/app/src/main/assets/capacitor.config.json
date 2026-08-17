@@ -1,0 +1,14 @@
+{
+	"appId": "com.quiwe.schooladminaiassistant",
+	"appName": "高校行政AI回复助手",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https"
+	},
+	"android": {
+		"backgroundColor": "#3B82F6",
+		"allowMixedContent": true,
+		"captureInput": true,
+		"webContentsDebuggingEnabled": false
+	}
+}

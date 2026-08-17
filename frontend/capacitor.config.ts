@@ -6,6 +6,13 @@ const config: CapacitorConfig = {
   webDir: "dist",
   server: {
     androidScheme: "https"
+  },
+  android: {
+    // 配置Android应用图标
+    backgroundColor: "#3B82F6",
+    allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: false
   }
 };
 
