@@ -246,6 +246,8 @@ def run_tray(window, root: Path, title: str) -> None:
             window.destroy()
         except Exception:
             pass
+        # Force exit the application
+        os._exit(0)
 
     menu = pystray.Menu(
         pystray.MenuItem("显示窗口", show_window, default=True),

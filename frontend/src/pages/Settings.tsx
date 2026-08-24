@@ -699,7 +699,7 @@ export default function SettingsPage() {
             <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
               <input
                 type="checkbox"
-                checked={autoStart?.enabled ?? true}
+                checked={autoStart?.enabled ?? false}
                 onChange={(event) =>
                   setAutoStart((current) =>
                     current

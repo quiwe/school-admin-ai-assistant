@@ -42,7 +42,7 @@ def executable_path() -> Path:
 def read_preference(db: Session) -> bool:
     row = db.query(Setting).filter(Setting.key == SETTING_KEY).first()
     if row is None or row.value == "":
-        return True
+        return False  # Changed from True to False - default should be disabled
     return row.value.lower() in {"1", "true", "yes", "on"}
 
 
@@ -63,8 +63,10 @@ def get_status(db: Session) -> AutoStartStatus:
     message = ""
     if not is_supported():
         message = "开机自启动仅在 Windows/macOS 安装版中生效。"
-    elif preferred != current:
-        message = "设置已保存，系统启动项会在下次启动软件时自动同步。"
+    elif preferred and not current:
+        message = "已开启开机自启动，将在下次启动软件时生效。"
+    elif not preferred and current:
+        message = "已取消开机自启动，将在下次启动软件时生效。"
     return AutoStartStatus(
         enabled=preferred,
         current_enabled=current,
@@ -167,7 +169,15 @@ def set_macos_auto_start(enabled: bool) -> None:
     path = launch_agent_path()
     if not enabled:
         if path.exists():
-            path.unlink()
+            try:
+                path.unlink()
+            except OSError:
+                # If unlink fails, try to overwrite with empty file
+                try:
+                    with path.open("wb") as f:
+                        f.write(b"")
+                except OSError:
+                    pass
         return
 
     path.parent.mkdir(parents=True, exist_ok=True)
