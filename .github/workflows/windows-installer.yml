@@ -122,8 +122,8 @@ jobs:
 
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release edit $tag --title $title --notes-file $env:RELEASE_NOTES_PATH --latest
+            gh release edit $tag --title $title --notes-file $env:RELEASE_NOTES_PATH
             gh release upload $tag $asset $guide --clobber
           } else {
-            gh release create $tag $asset $guide --title $title --notes-file $env:RELEASE_NOTES_PATH --latest
+            gh release create $tag $asset $guide --title $title --notes-file $env:RELEASE_NOTES_PATH
           }
